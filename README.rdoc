@@ -1,0 +1,11 @@
+== Introduction
+
+It's based on the fatfree framework 1.4.4. more: http://fatfree.sourceforge.net
+
+== Why
+
+I need a framework which can do things like Sinatra and Rails(more or less) in PHP.
+
+== How to use it ?
+
+fork && DIY.
