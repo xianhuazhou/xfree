@@ -19,7 +19,8 @@ class RootRoute {
       $method = $method ?: 'index';
 
       if (!method_exists($klass, $method)) {
-        throw new Exception('No method ' . $klass . '#' . $method . ' found.');
+        return;
+        //throw new Exception('No method ' . $klass . '#' . $method . ' found.');
       }
 
       // loade helper
