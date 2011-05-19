@@ -18,7 +18,6 @@ nginx.conf:
             fastcgi_index  dev.php;
             fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
             include        fastcgi_params;
-            fastcgi_param  SCRIPT_NAME      $script;
         }   
     }
 ------
