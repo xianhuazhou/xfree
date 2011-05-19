@@ -1,6 +1,8 @@
 <?php
-class UserController extends RootController{
-  public function index() {
+use xfree\Controller;
+
+class UserController extends Controller{
+  public function indexAction() {
     v('title', 'Users List');
     render();
   }

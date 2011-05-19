@@ -1,6 +1,8 @@
 <?php
-class DefaultController extends RootController {
-  public function index() {
+use xfree\Controller;
+
+class DefaultController extends Controller {
+  public function indexAction() {
     render();
   }
 }

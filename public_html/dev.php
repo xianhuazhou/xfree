@@ -1,3 +1,3 @@
 <?php
 require '../config/Application.php'; 
-Application::run(array('debug' => false));
+Application::run(array('debug' => true));
