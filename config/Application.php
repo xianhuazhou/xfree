@@ -1,5 +1,5 @@
 <?php
-require __DIR__ . '/../lib/vendor/X.php';
+require __DIR__ . '/../lib/vendor/xfree/X.php';
 
 class Application extends xfree\X {
     public static function initialize() {

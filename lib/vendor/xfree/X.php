@@ -18,6 +18,9 @@ class X {
     // global vars
     private static $vars = array();
 
+    // class paths
+    private static $classPaths = array();
+
     /**
      * set a var
      * 
@@ -229,12 +232,8 @@ class X {
      **/
     public static function autoload($klass) {
         $rootDir = self::get('root_dir');
-        $klassPath = '/' . str_replace('\\', '/', $klass) . '.php';
-        foreach (array(
-            self::get('lib_dir'),
-            self::get('model_dir'),
-            self::get('controller_dir'),
-        ) as $dir) {
+        $klassPath = '/' . str_replace('\\', '/', $klass) . '.php'; 
+        foreach (self::$classPaths as $dir) {
             if (file_exists($dir . $klassPath)) {
                 require $dir . $klassPath;
                 return;
@@ -248,10 +247,11 @@ class X {
      * @return void
      **/
     protected static function initialize() {
-        $rootDir = realpath(__DIR__ . '/../../');
+        $rootDir = realpath(__DIR__ . '/../../../');
         $appDir = $rootDir . '/app';
         $vendorDir = $rootDir . '/lib/vendor';
         $configDir = $rootDir . '/config';
+
         self::$vars = array(
             'x.debug' => false,
             'x.routes' => array(),
@@ -273,47 +273,24 @@ class X {
             'config_dir' => $rootDir . '/config',
             'helper_dir' => $rootDir . '/helper',
             'vendor_dir' => $rootDir . '/vendor',
+            'xfree_lib_dir' => $rootDir . '/lib/vendor/xfree/lib',
         );
 
-        require $vendorDir . '/helper/RootHelper.php';
+        self::$classPaths = array(
+            self::get('lib_dir'),
+            self::get('model_dir'),
+            self::get('controller_dir'),
+            self::get('xfree_lib_dir'),
+        );
+
+        // load xfree related files
+        require self::get('xfree_lib_dir') . '/helper/RootHelper.php';
+        require self::get('xfree_lib_dir') . '/xfree/exceptions.php';
+
+        // load routes
         require $configDir . '/routes.php';
 
         // autoload
         spl_autoload_register(__CLASS__ . '::autoload');
     }
 }
-
-class Controller {
-}
-
-class Model {
-}
-
-class ErrorController extends Controller {
-    public function render500Action() { 
-        //header('HTTP/1.1 500 Error');
-        $this->renderError(500);
-    }
-
-    public function render404Action() {
-        //header('HTTP/1.1 404 Not Found');
-        $this->renderError(404);
-    }
-
-    protected function renderError($status) {
-        $e = v('x.exception.object');
-        echo '<!DOCTYPE html><html><body>';
-        echo "<h1> $status Error</h2>";
-        echo '<h2>Exception: ' . $e->getMessage() . '</h2>';
-        echo '<hr>';
-        echo '<pre>' . $e->getTraceAsString() . '</pre>';
-        echo '<hr>by xfree';
-        echo '</body></html>';
-    }
-}
-
-// exceptions
-class X_Exception extends \Exception {}
-class InvalidRequestException extends X_Exception {}
-class NoRouteFoundException extends X_Exception {}
-class NoActionFoundException extends X_Exception {}
