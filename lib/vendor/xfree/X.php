@@ -87,12 +87,12 @@ class X {
             $routePathRegex = preg_replace('#/:\w+#', '/(\w+)', $routePath);
             if (preg_match('#^' . $routePathRegex . '$#', $path, $paramValues)) {
                 array_shift($paramValues);
-                
+
                 preg_match_all('#/:\w+#', $routePath, $paramNames);
                 $paramNames = array_map(function($v){
                     return substr($v, 2);
                 },$paramNames[0]);
-                
+
                 foreach($paramNames as $k => $v) {
                     self::set('param.' . $v, $paramValues[$k]);
                 }
@@ -247,7 +247,8 @@ class X {
      * @return void
      **/
     protected static function initialize() {
-        $rootDir = realpath(__DIR__ . '/../../../');
+        $rootDir = ROOT_DIR;
+        $xfreeDir = __DIR__;
         $appDir = $rootDir . '/app';
         $vendorDir = $rootDir . '/lib/vendor';
         $configDir = $rootDir . '/config';
@@ -273,7 +274,7 @@ class X {
             'config_dir' => $rootDir . '/config',
             'helper_dir' => $rootDir . '/helper',
             'vendor_dir' => $rootDir . '/vendor',
-            'xfree_lib_dir' => $rootDir . '/lib/vendor/xfree/lib',
+            'xfree_lib_dir' => $xfreeDir . '/lib',
         );
 
         self::$classPaths = array(
@@ -284,11 +285,14 @@ class X {
         );
 
         // load xfree related files
-        require self::get('xfree_lib_dir') . '/helper/RootHelper.php';
-        require self::get('xfree_lib_dir') . '/xfree/exceptions.php';
+        require $xfreeDir . '/lib/helper/RootHelper.php';
+        require $xfreeDir . '/lib/xfree/exceptions.php';
 
         // load routes
         require $configDir . '/routes.php';
+
+        // load environment
+        require $configDir . '/environments/' . basename($_SERVER['SCRIPT_FILENAME']);
 
         // autoload
         spl_autoload_register(__CLASS__ . '::autoload');
