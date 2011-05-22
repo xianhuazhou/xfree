@@ -1,6 +1,6 @@
 == Introduction
 
-It's based on the fatfree framework 1.4.4. more: http://fatfree.sourceforge.net
+It's inspired by the fatfree framework, required php5.3+.
 
 == Why
 
