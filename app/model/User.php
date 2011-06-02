@@ -1,8 +1,5 @@
 <?php
-class User extends RootModel {
-  /*
-  public function __construct() {
-    $this->sync('users');
-  }
-   */
+use xfree\Model;
+
+class User extends Model {
 }
