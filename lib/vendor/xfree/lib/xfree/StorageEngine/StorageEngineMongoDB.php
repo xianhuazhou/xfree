@@ -48,6 +48,9 @@ class StorageEngineMongoDB {
         // more: http://www.mongodb.org/display/DOCS/Updating
         $key = array_keys($fields);
         if (substr($key[0], 0, 1) != '$') {
+            // we need to take the _id out
+            unset($fields['_id']);
+
             $fields = array('$set' => $fields);
         }
 

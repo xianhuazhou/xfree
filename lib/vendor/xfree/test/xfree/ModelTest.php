@@ -9,7 +9,7 @@ class User extends Model {
     protected $PRIMARY_KEY = 'id';
 }
 
-// mongodb
+// mongodb (required MongoDB running)
 class Book extends Model {
     protected $FIELDS = array('_id', 'author', 'title');
     protected $PRIMARY_KEY = '_id';
@@ -75,7 +75,7 @@ class ModelTest extends TestCase {
 
         $items = $user->getConnection()->query("SELECT * FROM user")->fetchAll(\PDO::FETCH_ASSOC);
         $this->assertEquals(1, count($items));
-        $this->assertEquals($items[0]['name'], 'User Name');
+        $this->assertEquals('User Name', $items[0]['name']);
 
         // MongoDB
         $book = new Book();
@@ -85,10 +85,11 @@ class ModelTest extends TestCase {
         $book->create();
         $items = iterator_to_array($book->getConnection()->books->find(), false);
         $this->assertEquals(1, count($items));
-        $this->assertEquals($items[0]['author'], 'Author Name');
+        $this->assertEquals('Author Name', $items[0]['author']);
     }
 
     public function testUpdate() {
+        // PDO
         $user = new User(array(
             'name' => 'User Name',
             'pass' => 'userPass',
@@ -97,9 +98,33 @@ class ModelTest extends TestCase {
         $user->create();
         $this->assertEquals(1, $user->id);
         $this->assertEquals('User Name', $user->name);
+
+        $user->name = 'New User Name';
+        $user->update();
+        $this->assertEquals('New User Name', $user->name);
+        $items = $user->getConnection()->query("SELECT * FROM user")->fetchAll(\PDO::FETCH_ASSOC);
+        $this->assertEquals(1, count($items));
+        $this->assertEquals('New User Name', $items[0]['name']);
+
+        // MongoDB
+        $book = new Book(array(
+            'author' => 'Author Name',
+            'title' => 'Book Title',
+        ));
+        $book->create();
+        $this->assertTrue($book->_id instanceof \MongoId);
+        $this->assertEquals('Book Title', $book->title);
+
+        $book->title = 'New Book Title';
+        $book->update();
+        $this->assertEquals('New Book Title', $book->title);
+        $items = iterator_to_array($book->getConnection()->books->find(), false);
+        $this->assertEquals(1, count($items));
+        $this->assertEquals('New Book Title', $items[0]['title']);
     }
 
     public function testDelete() {
+        // PDO
         $user = new User(array(
             'name' => 'User Name',
             'pass' => 'userPass',
@@ -108,6 +133,16 @@ class ModelTest extends TestCase {
         $user->create();
         $user->delete();
         $items = $user->getConnection()->query("SELECT * FROM user")->fetchAll(\PDO::FETCH_ASSOC);
+        $this->assertEquals(0, count($items));
+
+        // MongoDB
+        $book = new Book(array(
+            'author' => 'Author Name',
+            'title' => 'Book Title',
+        ));
+        $book->create();
+        $book->delete();
+        $items = iterator_to_array($book->getConnection()->books->find(), false);
         $this->assertEquals(0, count($items));
     }
 } 
