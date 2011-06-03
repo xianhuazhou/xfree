@@ -255,12 +255,7 @@ class X {
 
         self::$vars = array(
             'x.debug' => false,
-            'x.routes' => array(),
-            'x.request.uri' => $_SERVER['REQUEST_URI'],
-            'x.request.method' => $_SERVER['REQUEST_METHOD'],
-            'x.request.host' => $_SERVER['HTTP_HOST'],
-            'x.request.ajax' => isset($_SERVER['X_REQUESTED_WITH']) && $_SERVER['X_REQUESTED_WITH'] == 'XMLHttpRequest',
-            'x.request.time' => $_SERVER['REQUEST_TIME'],
+            'x.routes' => array(), 
 
             'x.exception.controller' => '\\xfree\\ErrorController',
 
@@ -288,11 +283,22 @@ class X {
         require $xfreeDir . '/lib/helper/RootHelper.php';
         require $xfreeDir . '/lib/xfree/exceptions.php';
 
-        // load routes
-        require $configDir . '/routes.php';
+        // It's running in the web environment
+        if (isset($_SERVER['HTTP_HOST'])) {
+            self::$vars = array_merge(self::$vars, array(
+                'x.request.uri' => $_SERVER['REQUEST_URI'],
+                'x.request.method' => $_SERVER['REQUEST_METHOD'],
+                'x.request.host' => $_SERVER['HTTP_HOST'],
+                'x.request.is_ajax' => isset($_SERVER['X_REQUESTED_WITH']) && $_SERVER['X_REQUESTED_WITH'] == 'XMLHttpRequest',
+                'x.request.time' => $_SERVER['REQUEST_TIME'],
+            ));
 
-        // load environment
-        require $configDir . '/environments/' . basename($_SERVER['SCRIPT_FILENAME']);
+            // load routes
+            require $configDir . '/routes.php';
+
+            // load environment
+            require $configDir . '/environments/' . basename($_SERVER['SCRIPT_FILENAME']);
+        }
 
         // autoload
         spl_autoload_register(__CLASS__ . '::autoload');

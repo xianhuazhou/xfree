@@ -1,5 +1,6 @@
 <?php
 namespace xfree\StorageEngine;
+use xfree\StorageEngineException;
 
 /**
  * StorageEnginePDO contains PDO related actions.
@@ -21,18 +22,21 @@ class StorageEnginePDO {
      *
      * @param string $table
      * @param array $fields 
+     * @param mixed $primaryKey
      *
-     * @return bool
+     * @return int last insert id 
      */
-    public function create($table, Array $fields) {
+    public function create($table, Array $fields, $primaryKey = null) {
         $sql = "INSERT INTO " . $table . "(" . 
             join(',', array_keys($fields)) . 
             ") VALUES(" . join(',', array_fill(0, count($fields), '?')) . ")";
         $stmt = $this->pdo->prepare($sql);
+        if (!$stmt) {
+            $this->detectException($this->pdo, $sql);
+        }
         $stmt->execute(array_values($fields));
-        $stmt->closeCursor();
-        $this->detectException($stmt); 
-        return true;
+        $this->detectException($stmt, $sql); 
+        return $this->pdo->lastInsertId($primaryKey);
     }
 
     /**
@@ -49,12 +53,14 @@ class StorageEnginePDO {
             join(',', array_map(function($field){
                 return $field . '=?';
             }, array_keys($fields))) . 
-                " WHERE " . $conditions;
+                " WHERE " . $this->convertConditions($conditions);
         $stmt = $this->pdo->prepare($sql);
+        if (!$stmt) {
+            $this->detectException($this->pdo, $sql);
+        }
         $stmt->execute(array_values($fields));
         $rowCount = $stmt->rowCount();
-        $stmt->closeCursor();
-        $this->detectException($stmt); 
+        $this->detectException($stmt, $sql); 
         return $rowCount;
     }
 
@@ -68,8 +74,10 @@ class StorageEnginePDO {
      * @return int deleted items
      */
     public function delete($table, $conditions) {
-        $num = $this->pdo->exec("DELETE FROM " . $table . " WHERE " . $conditions);
-        $this->detectException($this->pdo); 
+        $sql = "DELETE FROM " . $table . " 
+            WHERE " . $this->convertConditions($conditions);
+        $num = $this->pdo->exec($sql);
+        $this->detectException($this->pdo, $sql); 
         return $num;
     }
 
@@ -83,11 +91,34 @@ class StorageEnginePDO {
     }
 
     /**
+     * convert conditions for the "WHERE" caluse.
+     *
+     * @param mixed $conditions
+     *
+     * @return string
+     */
+    private function convertConditions($conditions) {
+        if (is_string($conditions)) {
+            return $conditions;
+        }
+
+        if (is_array($conditions)) {
+            $where = array();
+            foreach ($conditions as $k => $v) {
+                $where[] = $k . "=" . $this->pdo->quote($v);
+            }
+
+            return join(' AND ', $where);
+        }
+    }
+
+    /**
      * detect exception
      *
      * @param mixed $obj
+     * @param string $sql
      */
-    private function detectException($obj) {
+    private function detectException($obj, $sql) {
         if ('00000' != $obj->errorCode()) {
             throw new StorageEngineException('Can not execute the SQL: ' . $sql . "\n " . 
                 print_r($obj->errorInfo(), true)

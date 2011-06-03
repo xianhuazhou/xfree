@@ -67,8 +67,8 @@ class StorageEngine {
         } else {
             return new \PDO(
                 $dsnInfo['dsn'], 
-                $dsnInfo['username'], 
-                $dsnInfo['password'], 
+                isset($dsnInfo['username']) ? $dsnInfo['username'] : '', 
+                isset($dsnInfo['password']) ? $dsnInfo['password'] : '', 
                 $options
             );
         }
@@ -96,7 +96,7 @@ class StorageEngine {
      * @return mixed number of updated items in PDO, true or false in Mongo
      */
     public function update($table, Array $fields, $conditions) {
-        return $this->adpater->update($table, $fields, $conditions);
+        return $this->adapter->update($table, $fields, $conditions);
     }
 
     /**
@@ -108,7 +108,7 @@ class StorageEngine {
      * @return mixed number of deleted items in PDO, true or false in Mongo
      */
     public function delete($table, $conditions) {
-        return $this->adpater->delete($table, $conditions);
+        return $this->adapter->delete($table, $conditions);
     }
 
     /**

@@ -6,12 +6,8 @@ use xfree\StorageEngine\StorageEngine;
  * Model class
  */
 class Model {
-
     // fields
     protected $_fields = array();
-
-    // reflection class
-    protected $_refClass = null;
 
     // storage engine
     protected $_storageEngine = null;
@@ -23,10 +19,37 @@ class Model {
      */
     public function __construct($fields = null) {
         if (is_array($fields)) {
-            $this->_fields = $fields;
+           $this->setFields($fields); 
         }
-        $this->_refClass = new \ReflectionClass($this);
         $this->_storageEngine = new StorageEngine();
+    }
+
+    /**
+     * set fields
+     *
+     * @param array $fields
+     */
+    protected function setFields(Array $fields) {
+        foreach ($fields as $k => $v) {
+            $this->setField($k, $v);
+        }
+    }
+
+    /**
+     * set field
+     *
+     * @param string $k
+     * @param mixed $v
+     *
+     * @return bool
+     */
+    protected function setField($k, $v) {
+        if (in_array($k, $this->FIELDS)) {
+            $this->_fields[$k] = $v;
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -36,9 +59,31 @@ class Model {
      * @param string $v
      */
     public function __set($k, $v) {
-        if (!$this->_refClass->hasProperty($k)) {
-            $this->_fields[$k] = $v;
+       return $this->setField($k, $v); 
+    }
+
+    /**
+     * invoked whenever get the model's property
+     *
+     * @param string $k
+     * @param string $v
+     *
+     * @return mixed
+     */
+    public function __get($k) {
+        if (isset($this->_fields[$k])) {
+            return $this->_fields[$k];
         }
+        return null;
+    }
+
+    /**
+     * get fields
+     *
+     * @return array
+     */
+    public function getFields() {
+        return $this->_fields;
     }
 
     /**
@@ -55,7 +100,7 @@ class Model {
      *
      * @return PDO or MongoDB
      */
-    protected function getConnection() {
+    public function getConnection() {
         return $this->_storageEngine->getAdapter()->getConnection();
     }
 
@@ -74,32 +119,57 @@ class Model {
     /**
      * create an new item
      *
-     * @return bool
+     * @return Model 
      */
     public function create() {
-        return $this->_storageEngine->create($this->getTable(), $this->_fields);
+        $lastInsertId = $this->_storageEngine->create(
+            $this->getTable(), 
+            $this->_fields, 
+            $this->PRIMARY_KEY
+        );
+        if ($this->PRIMARY_KEY) {
+            $this->_fields[$this->PRIMARY_KEY] = $lastInsertId;
+        }
+        return $this;
     }
 
     /**
      * update one or more items 
      *
-     * @param string $conditions
+     * @param mixed $conditions  update with the primary key if it's null, otherwise by the conditions
      *
      * @return int  updated items 
      */
-    public function update($conditions) {
-       return $this->_storageEngine->update($this->getTable(), $this->_fields, $conditions);
+    public function update($conditions = null) {
+        return $this->_storageEngine->update(
+            $this->getTable(), 
+            $this->_fields, 
+            $this->convertConditions($conditions)
+        );
     }
 
     /**
      * delete one or more items
      *
-     * @param string $conditions
+     * @param mixed $conditions
      *
      * @return int deleted items
      */
-    public function delete($conditions) {
-        $this->_storageEngine->delete($this->getTable(), $conditions);
+    public function delete($conditions = null) {
+        $this->_storageEngine->delete($this->getTable(), $this->convertConditions($conditions));
+    }
+
+    /**
+     * convert conditions
+     *
+     * @param mixed $conditions
+     *
+     * @return mixed
+     */
+    private function convertConditions($conditions) {
+        return $conditions === null ? 
+            array($this->PRIMARY_KEY => $this->_fields[$this->PRIMARY_KEY]) : 
+            $conditions;
     }
 
     /**
@@ -111,7 +181,8 @@ class Model {
         if (isset($this->table)) {
             return $this->table;
         }
-        return strtolower(preg_replace('/(\w)([A-Z])/', '$1_$2', get_class($this)));
+        $table = explode('\\', get_class($this));
+        return strtolower(preg_replace('/(\w)([A-Z])/', '$1_$2', array_pop($table)));
     }
 }
 
