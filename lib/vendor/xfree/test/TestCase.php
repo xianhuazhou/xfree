@@ -8,4 +8,9 @@ class TestCase extends \PHPUnit_Framework_TestCase {
             unlink($sqlitedb);
         }
     }
+
+    protected function deleteMongoDB() {
+        $book = new Book();
+        $book->getConnection()->drop();
+    }
 }

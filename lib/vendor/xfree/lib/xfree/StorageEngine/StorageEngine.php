@@ -7,7 +7,7 @@ namespace xfree\StorageEngine;
 class StorageEngine {
 
     // default database reference name
-    const DEFAULT_DATABASE_REF = 'default';
+    const DEFAULT_DATABASE_REFERENCE = 'default';
 
     // current dsnInfo
     private $dsnInfo = null;
@@ -23,7 +23,7 @@ class StorageEngine {
      *
      * @param string $databaseRef
      */
-    public function __construct($databaseRef = self::DEFAULT_DATABASE_REF) {
+    public function __construct($databaseRef = self::DEFAULT_DATABASE_REFERENCE) {
         $dsns = v('x.storage_engine');
         $this->dsnInfo = $dsns[$databaseRef];
 
@@ -80,7 +80,7 @@ class StorageEngine {
      * @param string $table
      * @param array $fields
      *
-     * @return bool
+     * @return mixed  last insert id 
      */
     public function create($table, Array $fields) {
         return $this->adapter->create($table, $fields);

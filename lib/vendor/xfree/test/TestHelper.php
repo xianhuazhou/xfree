@@ -22,6 +22,9 @@ class TestHelper extends X {
         v('x.storage_engine', array(
             'default' => array(
                 'dsn' => 'sqlite:' . v('x.test.storage_engine_sqlitedb')
+            ),
+            'mongo' => array(
+                'dsn' => 'mongodb://localhost:27017/mongo'
             )
         ));
     }

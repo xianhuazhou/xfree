@@ -21,7 +21,11 @@ class Model {
         if (is_array($fields)) {
            $this->setFields($fields); 
         }
-        $this->_storageEngine = new StorageEngine();
+        $this->_storageEngine = new StorageEngine(
+            isset($this->DATABASE_REFERENCE) ? 
+                $this->DATABASE_REFERENCE : 
+                StorageEngine::DEFAULT_DATABASE_REFERENCE
+        );
     }
 
     /**
@@ -178,8 +182,8 @@ class Model {
      * @return string
      */
     protected function getTable() {
-        if (isset($this->table)) {
-            return $this->table;
+        if (isset($this->TABLE)) {
+            return $this->TABLE;
         }
         $table = explode('\\', get_class($this));
         return strtolower(preg_replace('/(\w)([A-Z])/', '$1_$2', array_pop($table)));

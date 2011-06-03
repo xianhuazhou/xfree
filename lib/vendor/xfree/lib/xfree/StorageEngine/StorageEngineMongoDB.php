@@ -27,10 +27,11 @@ class StorageEngineMongoDB {
      * @param string $table
      * @param array $fields
      *
-     * @return bool
+     * @return string last insert id
      */
     public function create($table, Array $fields) {
-        return $this->mongoDB->$table->insert($fields);
+        $this->mongoDB->$table->insert($fields, array('safe' => true));
+        return $fields['_id'];
     }
 
     /**
