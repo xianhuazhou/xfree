@@ -115,6 +115,11 @@ function render($template = null) {
     } else {
         echo $viewResult;
     }
+
+    xfree\Logger::log(
+        xfree\Logger::INFO, 
+        sprintf('%s - Render template: %s', date('H:i:s'), $viewDir . '/' . $template)
+    );
 }
 
 function renderAsString($template = null) {
@@ -152,6 +157,11 @@ function start_slot() {
 function end_slot_as($name) {
     $slotData = ob_get_contents();
     ob_end_clean();
+
+    xfree\Logger::log(
+        xfree\Logger::INFO, 
+        sprintf('%s - Slot created: %s', date('H:i:s'), $name)
+    );
 
     return v('__slot_data__' . $name, $slotData);
 }
