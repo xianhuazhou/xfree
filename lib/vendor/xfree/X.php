@@ -97,6 +97,14 @@ class X {
                     self::set('param.' . $v, $paramValues[$k]);
                 }
 
+                Logger::log(Logger::INFO, sprintf("%s - Matched route \"%s\": %s %s => %s", 
+                    date('H:i:s'), 
+                    $route['name'], 
+                    $route['method'], 
+                    $route['path'], 
+                    $route['action']
+                ));
+
                 return $route;
             }
         }
@@ -170,6 +178,7 @@ class X {
      **/
     protected static function renderAction($klass, $method)
     {
+        Logger::log(Logger::INFO, sprintf('%s - Render action: %s::%s', date('H:i:s'), $klass, $method));
         v('x.current.controller', substr($klass, 0, -10));
         v('x.current.action', $method);
         $method .= self::ACTION_SUFFIX;
@@ -195,6 +204,10 @@ class X {
      * @param array $options
      */
     public static function run($options = array()) {
+        $startTime = microtime(true);
+
+        Logger::log(Logger::INFO, sprintf('%s - Processing: %s', date('H:i:s'), $_SERVER['PHP_SELF']));
+
         if ($options['debug']) {
             ini_set('display_errors', true);
             error_reporting(E_ALL);
@@ -223,6 +236,8 @@ class X {
                 );
             }
         }
+
+        Logger::log(Logger::INFO, sprintf("%s - Done, Time: %fs\n\n", date('H:i:s'), microtime(true) - $startTime));
     }
 
     /**
@@ -253,11 +268,14 @@ class X {
         $vendorDir = $rootDir . '/lib/vendor';
         $configDir = $rootDir . '/config';
 
+        $scriptName = basename($_SERVER['SCRIPT_FILENAME']);
+        $xENV = substr($scriptName, 0, strpos($scriptName, '.'));
+
         self::$vars = array(
             'x.debug' => false,
             'x.routes' => array(), 
-
             'x.exception.controller' => '\\xfree\\ErrorController',
+            'x.env' => $xENV,
 
             'root_dir' => $rootDir,
             'app_dir' => $appDir,
@@ -270,6 +288,8 @@ class X {
             'helper_dir' => $rootDir . '/helper',
             'vendor_dir' => $rootDir . '/vendor',
             'xfree_lib_dir' => $xfreeDir . '/lib',
+            'log_dir' => $rootDir . '/log',
+            'log_file' => $rootDir . '/log/' . $xENV . '.log',
         );
 
         self::$classPaths = array(
@@ -282,6 +302,9 @@ class X {
         // load xfree related files
         require $xfreeDir . '/lib/helper/RootHelper.php';
         require $xfreeDir . '/lib/xfree/exceptions.php';
+
+        // autoload
+        spl_autoload_register(__CLASS__ . '::autoload');
 
         // It's running in the web environment
         if (isset($_SERVER['HTTP_HOST'])) {
@@ -297,10 +320,7 @@ class X {
             require $configDir . '/routes.php';
 
             // load environment
-            require $configDir . '/environments/' . basename($_SERVER['SCRIPT_FILENAME']);
+            require $configDir . '/environments/' . $scriptName;
         }
-
-        // autoload
-        spl_autoload_register(__CLASS__ . '::autoload');
     }
 }
