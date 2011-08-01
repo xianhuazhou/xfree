@@ -12,6 +12,17 @@ class Model {
     // storage engine
     protected $_storageEngine = null;
 
+    // observer class
+    protected $_observer = null;
+
+    // some hookobserver related constants
+    const HOOK_BEFORE_CREATE = 1;
+    const HOOK_BEFORE_UPDATE = 2;
+    const HOOK_BEFORE_DELETE = 3;
+    const HOOK_AFTER_CREATE = 4;
+    const HOOK_AFTER_UPDATE = 5;
+    const HOOK_AFTER_DELETE = 6;
+
     /**
      * construct
      *
@@ -26,6 +37,29 @@ class Model {
                 $this->DATABASE_REFERENCE : 
                 StorageEngine::DEFAULT_DATABASE_REFERENCE
         );
+
+        $observerClass = get_class($this) . 'Observer';
+        if (class_exists($observerClass)) {
+            $this->setObserver($observerClass);
+        }
+    }
+
+    /**
+     * set observer
+     *
+     * @param string $observer
+     */
+    public function setObserver($observer = null) {
+        $this->_observer = new $observer($this);
+    }
+
+    /**
+     * get observer
+     *
+     * @param Observer $observer
+     */
+    public function getObserver() {
+        return $this->_observer;
     }
 
     /**
@@ -63,7 +97,7 @@ class Model {
      * @param string $v
      */
     public function __set($k, $v) {
-       return $this->setField($k, $v); 
+        return $this->setField($k, $v); 
     }
 
     /**
@@ -126,6 +160,7 @@ class Model {
      * @return Model 
      */
     public function create() {
+        $this->hookObserver(self::HOOK_BEFORE_CREATE);
         $lastInsertId = $this->_storageEngine->create(
             $this->getTable(), 
             $this->_fields, 
@@ -134,6 +169,8 @@ class Model {
         if ($this->PRIMARY_KEY) {
             $this->_fields[$this->PRIMARY_KEY] = $lastInsertId;
         }
+        $this->hookObserver(self::HOOK_AFTER_CREATE);
+
         return $this;
     }
 
@@ -145,11 +182,15 @@ class Model {
      * @return int  updated items 
      */
     public function update($conditions = null) {
-        return $this->_storageEngine->update(
+        $this->hookObserver(self::HOOK_BEFORE_UPDATE);
+        $affectedRows = $this->_storageEngine->update(
             $this->getTable(), 
             $this->_fields, 
             $this->convertConditions($conditions)
         );
+        $this->hookObserver(self::HOOK_AFTER_UPDATE);
+
+        return $affectedRows;
     }
 
     /**
@@ -160,7 +201,11 @@ class Model {
      * @return int deleted items
      */
     public function delete($conditions = null) {
-        $this->_storageEngine->delete($this->getTable(), $this->convertConditions($conditions));
+        $this->hookObserver(self::HOOK_BEFORE_DELETE);
+        $affectedRows = $this->_storageEngine->delete($this->getTable(), $this->convertConditions($conditions));
+        $this->hookObserver(self::HOOK_AFTER_DELETE);
+
+        return $affectedRows;
     }
 
     /**
@@ -185,8 +230,60 @@ class Model {
         if (isset($this->TABLE)) {
             return $this->TABLE;
         }
+        return strtolower(preg_replace('/(\w)([A-Z])/', '$1_$2', $this->getCurrentClassName()));
+    }
+
+    /**
+     * hook observer
+     *
+     * @param int $hookType
+     */
+    protected function hookObserver($hookType) {
+        $observer = $this->_observer;
+        if (!($observer instanceof Observer)) {
+            return;
+        }
+
+        $method = null;
+        switch ($hookType) {
+        case self::HOOK_BEFORE_CREATE:
+            $method = 'beforeCreate';
+            break;
+
+        case self::HOOK_BEFORE_UPDATE:
+            $method = 'beforeUpdate';
+            break;
+
+        case self::HOOK_BEFORE_DELETE:
+            $method = 'beforeDelete';
+            break;
+
+        case self::HOOK_AFTER_CREATE:
+            $method = 'afterCreate';
+            break;
+
+        case self::HOOK_AFTER_UPDATE:
+            $method = 'afterUpdate';
+            break;
+
+        case self::HOOK_AFTER_DELETE:
+            $method = 'afterDelete';
+            break;
+        }
+
+        if ($method && method_exists($observer, $method)) {
+            $observer->$method($this);
+        }
+    }
+
+    /**
+     * get current class name
+     *
+     * @return string
+     */
+    public function getCurrentClassName() {
         $table = explode('\\', get_class($this));
-        return strtolower(preg_replace('/(\w)([A-Z])/', '$1_$2', array_pop($table)));
+        return array_pop($table);
     }
 }
 

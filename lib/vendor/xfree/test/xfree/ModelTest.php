@@ -2,6 +2,7 @@
 namespace xfree\test;
 require __DIR__ . '/../TestHelper.php';
 use xfree\Model;
+use xfree\Observer;
 
 // PDO(sqlite)
 class User extends Model {
@@ -17,12 +18,26 @@ class Book extends Model {
     protected $TABLE = 'books';
 }
 
+// observer
+class Page extends Model {
+    protected $FIELDS = array('title', 'desc');
+    protected $PRIMARY_KEY = 'id';
+}
+class PageObserver extends Observer {
+    public function beforeCreate($page) {
+        $page->title = $page->title . ' Observer';
+    }
+}
+
 class ModelTest extends TestCase {
     public function setUp() { 
         $this->deleteSqliteDB();
         $this->deleteMongoDB();
         $user = new User();
         $user->getConnection()->exec('CREATE TABLE user(id INTEGER PRIMARY KEY ASC, name TEXT, pass TEXT, age INTEGER)');
+
+        $page = new Page();
+        $page->getConnection()->exec('CREATE TABLE page(id INTEGER PRIMARY KEY ASC, title TEXT, desc TEXT)');
     }
 
     public function tearDown() {
@@ -144,5 +159,18 @@ class ModelTest extends TestCase {
         $book->delete();
         $items = iterator_to_array($book->getConnection()->books->find(), false);
         $this->assertEquals(0, count($items));
+    }
+
+    public function testHookObserver() {
+        $page = new Page(array(
+            'title' => 'Page Title',
+            'desc' => 'blabla',
+        ));
+        $page->create();
+        $this->assertEquals('Page Title Observer', $page->title);
+        $this->assertEquals('blabla', $page->desc);
+        $items = $page->getConnection()->query("SELECT * FROM page")->fetchAll(\PDO::FETCH_ASSOC);
+        $this->assertEquals('Page Title Observer', $items[0]['title']);
+        $this->assertEquals('blabla', $items[0]['desc']);
     }
 } 
