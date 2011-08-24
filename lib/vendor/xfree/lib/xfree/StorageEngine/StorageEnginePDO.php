@@ -120,6 +120,11 @@ class StorageEnginePDO {
      */
     private function detectException($obj, $sql) {
         if ('00000' != $obj->errorCode()) {
+            Logger::error(sprintf(
+                "StorageEngine - exception: %s, sql: %s", 
+                $obj->errorInfo(), 
+                $sql
+            ));
             throw new StorageEngineException('Can not execute the SQL: ' . $sql . "\n " . 
                 print_r($obj->errorInfo(), true)
             );

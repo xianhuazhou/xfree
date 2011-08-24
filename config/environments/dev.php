@@ -14,4 +14,4 @@ v('x.storage_engine', array(
         'dsn' => 'mongodb://localhost:27017/user'
     )
 ));
-v('x.log_level', xfree\Logger::INFO);
+v('x.log_level', xfree\Logger::DEBUG);

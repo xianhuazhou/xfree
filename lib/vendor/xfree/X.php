@@ -82,6 +82,12 @@ class X {
             throw new InvalidRequestException();
         }
 
+        if (strpos($path, '?')) {
+            $path = explode('?', $path);
+            array_pop($path);
+            $path = join('?', $path);
+        }
+
         foreach (self::get('x.routes') as $route) {
             $routePath = $route['path'];
             $routePathRegex = preg_replace('#/:\w+#', '/(\w+)', $routePath);
@@ -97,12 +103,11 @@ class X {
                     self::set('param.' . $v, $paramValues[$k]);
                 }
 
-                Logger::log(Logger::INFO, sprintf("%s - Matched route \"%s\": %s %s => %s", 
-                    date('H:i:s'), 
+                Logger::info(sprintf("Matched route \"%s\": %s %s => %s", 
                     $route['name'], 
                     $route['method'], 
                     $route['path'], 
-                    $route['action']
+                    $route['action'] instanceof \Closure ? 'Closure' : $route['action']
                 ));
 
                 return $route;
@@ -178,7 +183,7 @@ class X {
      **/
     protected static function renderAction($klass, $method)
     {
-        Logger::log(Logger::INFO, sprintf('%s - Render action: %s::%s', date('H:i:s'), $klass, $method));
+        Logger::info(sprintf('Render action: %s::%s', $klass, $method));
         v('x.current.controller', substr($klass, 0, -10));
         v('x.current.action', $method);
         $method .= self::ACTION_SUFFIX;
@@ -206,7 +211,7 @@ class X {
     public static function run($options = array()) {
         $startTime = microtime(true);
 
-        Logger::log(Logger::INFO, sprintf('%s - Processing: %s', date('H:i:s'), $_SERVER['PHP_SELF']));
+        Logger::info(sprintf('Processing: %s', $_SERVER['REQUEST_URI']));
 
         if ($options['debug']) {
             ini_set('display_errors', true);
@@ -237,7 +242,7 @@ class X {
             }
         }
 
-        Logger::log(Logger::INFO, sprintf("%s - Done, Time: %fs\n\n", date('H:i:s'), microtime(true) - $startTime));
+        Logger::info(sprintf("Done, Time: %fs\n\n", microtime(true) - $startTime));
     }
 
     /**

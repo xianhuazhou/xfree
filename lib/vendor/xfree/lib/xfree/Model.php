@@ -50,6 +50,7 @@ class Model {
      * @param string $observer
      */
     public function setObserver($observer = null) {
+        Logger::info(sprintf('set observer class: %s', $observer));
         $this->_observer = new $observer($this);
     }
 
@@ -273,6 +274,7 @@ class Model {
 
         if ($method && method_exists($observer, $method)) {
             $observer->$method($this);
+            Logger::info(sprintf('call observer method %s#%s', get_class($observer), $method));
         }
     }
 

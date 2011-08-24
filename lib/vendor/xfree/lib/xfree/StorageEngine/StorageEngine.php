@@ -1,5 +1,6 @@
 <?php
 namespace xfree\StorageEngine;
+use xfree\Logger;
 
 /**
  * StorageEngine, supports PDO and MongoDB
@@ -61,10 +62,12 @@ class StorageEngine {
             }
             $mongo = new \Mongo($dsnInfo['dsn'], $options);
             $mongoDB = explode('/', $dsnInfo['dsn']);
+            Logger::info(sprintf('initialize MongoDB %s', $dsnInfo['dsn']));
             return $mongo->selectDB(array_pop($mongoDB));
 
         // pdo
         } else {
+            Logger::info(sprintf('StoreEngine - initialize PDO %s', $dsnInfo['dsn']));
             return new \PDO(
                 $dsnInfo['dsn'], 
                 isset($dsnInfo['username']) ? $dsnInfo['username'] : '', 
@@ -83,6 +86,11 @@ class StorageEngine {
      * @return mixed  last insert id 
      */
     public function create($table, Array $fields) {
+        Logger::info(sprintf(
+            'StoreEngine - create item: %s, table: %s', 
+            "'" . json_encode($fields) . "'",
+            $table
+        ));
         return $this->adapter->create($table, $fields);
     }
 
@@ -96,6 +104,12 @@ class StorageEngine {
      * @return mixed number of updated items in PDO, true or false in Mongo
      */
     public function update($table, Array $fields, $conditions) {
+        Logger::info(sprintf(
+            'StoreEngine - update item: %s, conditions: (%s), table: %s', 
+            "'" . json_encode($fields) . "'", 
+            "'" . json_encode($conditions) . "'",
+            $table
+        ));
         return $this->adapter->update($table, $fields, $conditions);
     }
 
@@ -108,6 +122,11 @@ class StorageEngine {
      * @return mixed number of deleted items in PDO, true or false in Mongo
      */
     public function delete($table, $conditions) {
+        Logger::info(sprintf(
+            'StoreEngine - delete item, conditions: (%s), table: %s', 
+            "'" . json_encode($conditions) . "'",
+            $table
+        ));
         return $this->adapter->delete($table, $conditions);
     }
 
@@ -130,6 +149,12 @@ class StorageEngine {
      * @return array
      */
     public function find($table, $conditions = null, $fields = array()) {
+        Logger::info(sprintf(
+            'StoreEngine - find item, fields: %s, conditions: (%s), table: %s', 
+             "'" . json_encode($fields) . "'",
+             "'" . json_encode($conditions) . "'",
+            $table
+        ));
         return $this->adapter->find($table, $conditions, $fields);
     }
 }

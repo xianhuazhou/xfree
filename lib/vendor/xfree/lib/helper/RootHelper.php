@@ -1,5 +1,6 @@
 <?php
 use xfree\X;
+use xfree\Logger;
 
 function v() {
     $args = func_get_args();
@@ -116,10 +117,9 @@ function render($template = null) {
         echo $viewResult;
     }
 
-    xfree\Logger::log(
-        xfree\Logger::INFO, 
-        sprintf('%s - Render template: %s', date('H:i:s'), $viewDir . '/' . $template)
-    );
+    Logger::info(sprintf(
+        'Render template: %s', $viewDir . '/' . $template
+    ));
 }
 
 function renderAsString($template = null) {
