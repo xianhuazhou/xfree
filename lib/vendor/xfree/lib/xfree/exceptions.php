@@ -22,3 +22,8 @@ class StorageEngineException extends X_Exception {
         parent::__construct('StorageEngine error');
     }
 }
+class PDOConnectionException extends X_Exception {
+    public function __construct() {
+        parent::__construct('No available PDO Connection');
+    }
+}

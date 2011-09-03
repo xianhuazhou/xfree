@@ -18,6 +18,7 @@ class StorageEngine {
 
     // adapter
     private $adapter = null;
+    private $slaveAdapter = null;
 
     /**
      * construct, initialize a database connection
@@ -38,8 +39,12 @@ class StorageEngine {
 
         if ($connection instanceof \PDO) {
             $this->adapter = new StorageEnginePDO($connection);
+            if (!$this->slaveAdapter) {
+                $this->adapter = $this->slaveAdapter();
+            }
         } else {
             $this->adapter = new StorageEngineMongoDB($connection);
+            $this->slaveAdapter = $this->adapter;
         }
     }
 
@@ -50,10 +55,9 @@ class StorageEngine {
      */
     protected function getConnection() {
         $dsnInfo = $this->dsnInfo;
-        $options = isset($dsnInfo['option']) ? $dsnInfo['option'] : array();
-
         // mongodb
-        if (false !== strpos($dsnInfo['dsn'], 'mongodb://')) {
+        if (isset($dsnInfo['dsn']) && (false !== strpos($dsnInfo['dsn'], 'mongodb://'))) {
+            $options = isset($dsnInfo['option']) ? $dsnInfo['option'] : array();
             if (isset($dsnInfo['username']) && isset($dsnInfo['password'])) {
                 $options = array_merge($options, array(
                     'username' => $dsnInfo['username'],
@@ -62,18 +66,64 @@ class StorageEngine {
             }
             $mongo = new \Mongo($dsnInfo['dsn'], $options);
             $mongoDB = explode('/', $dsnInfo['dsn']);
-            Logger::info(sprintf('initialize MongoDB %s', $dsnInfo['dsn']));
+            Logger::info(sprintf('initialize MongoDB connection'));
             return $mongo->selectDB(array_pop($mongoDB));
 
         // pdo
         } else {
-            Logger::info(sprintf('StoreEngine - initialize PDO %s', $dsnInfo['dsn']));
-            return new \PDO(
-                $dsnInfo['dsn'], 
-                isset($dsnInfo['username']) ? $dsnInfo['username'] : '', 
-                isset($dsnInfo['password']) ? $dsnInfo['password'] : '', 
-                $options
-            );
+            Logger::info(sprintf('StoreEngine - initialize PDO connection'));
+
+            $masterConnection = $this->getPDOConnection($dsnInfo['master']);
+
+            if ($slaveConnection = $this->getPDOConnection($dsnInfo['slave'], false)) {
+                $this->slaveAdapter = new StorageEnginePDO($slaveConnection);
+            }
+
+            return $masterConnection; 
+        }
+    }
+
+    /**
+     * get one  random dsninfo from multiple masters or slaves 
+     *
+     * @param array $dsnInfos
+     * @param bool $throwException true means throw an exception if there is 
+     *                             no available connection found, false return null 
+     * @return array
+     */
+    private function getPDOConnection(Array $dsnInfos, $throwException = true) {
+        $allDSNInfos = array();
+
+        foreach ($dsnInfos as $dsnInfo) {
+            $weight = isset($dsnInfo['weight']) ? $dsnInfo['weight'] : 1;
+            $allDSNInfos = array_pad($allDSNInfos, count($allDSNInfos) + $weight, $dsnInfo);
+        }
+
+        shuffle($allDSNInfos);
+
+        foreach ($allDSNInfos as $dsnInfo) {
+            try {
+                $options = isset($dsnInfo['options']) ? $dsnInfo['options'] : array();
+                return new \PDO(
+                    $dsnInfo['dsn'], 
+                    isset($dsnInfo['username']) ? $dsnInfo['username'] : '', 
+                    isset($dsnInfo['password']) ? $dsnInfo['password'] : '', 
+                    $options
+                );
+            } catch (\PDOException $e) {
+                continue;
+            }
+        }
+
+        if ($throwException) {
+            Logger::error(sprintf(
+                'StoreEngine - No PDO Connection avaiable.: %s',
+                print_r($dsnInfos, true)
+            ));
+            throw new PDOConnectionException();
+
+        } else {
+            return null;
         }
     }
 
@@ -140,6 +190,15 @@ class StorageEngine {
     }
 
     /**
+     * get slave adapter
+     *
+     * @return StorageEnginePDO or StorageEngineMongoDB
+     */
+    public function getSlaveAdapter() {
+        return $this->slaveAdapter;
+    }
+
+    /**
      * find items
      *
      * @param string $table
@@ -155,6 +214,6 @@ class StorageEngine {
              "'" . json_encode($conditions) . "'",
             $table
         ));
-        return $this->adapter->find($table, $conditions, $fields);
+        return $this->slaveAdapter->find($table, $conditions, $fields);
     }
 }
