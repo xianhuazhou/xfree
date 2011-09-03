@@ -21,3 +21,23 @@ nginx.conf:
         }   
     }
 ------
+
+lighttpd.conf:
+------
+$HTTP["host"] == "xfree.lab" {
+  server.name    = "xfree.lab"
+  server.document-root = "/var/www/html/xfree/public_html"
+  url.rewrite-if-not-file = ("^/(.+?)$" => "/dev.php?$1")
+}
+
+server.modules += ( "mod_fastcgi" )
+fastcgi.server = ( ".php" =>
+    ( "localhost" =>
+      (   
+       "host" => "127.0.0.1",
+       "port" => 9000,
+       "check-local" => "disable",
+       "broken-scriptfilename" => "enable",
+      )   
+    )   
+  )
