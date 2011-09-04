@@ -1,0 +1,91 @@
+With the x() method, we can access the following built-in availables:
+
+x.debug: enable or disable the debug mode, recommend enable it only on production environment.
+
+x.routes: get all built-in routes
+
+x.exception.controller: built-in controller for exceptions handle 
+
+x.env: environment name such as 'dev', 'production' etc. 
+
+x.storage_engine: database related settings for PDO or MongoDB. e.g.
+x('x.storage_engine', array(
+
+    // pdo, Master/Slave supported by default
+    'default' => array(
+        'master' => array(
+            array(
+                'dsn' => 'mysql:host=localhost;dbname=xfree',
+                'username' => 'root',
+                'password' => 'pa$$word'
+            )
+
+            // can add more master databases here
+        ),
+
+        // optional
+        'slave' => array(
+            array(
+                'dsn' => 'mysql:host=slave1;dbname=xfree',
+                'username' => 'root',
+                'password' => 'pa$$word'
+            ),
+            array(
+                'dsn' => 'mysql:host=slave2;dbname=xfree',
+                'username' => 'root',
+                'password' => 'pa$$word'
+            ),
+        )
+    ),
+
+    // MongoDB (only one database here for log), no Master/Slave needed, Replica sets is better than the Master/Slave mode.
+    'log' => array(
+        'dsn' => 'mongodb://localhost:27017/user'
+    )
+));
+
+root_dir: root directory of your application
+
+app_dir: "app" directory of your application, same as x('root_dir') . '/app'
+
+config_dir: "config" directory of your application, same as x('root_dir') . '/config'
+
+controller_dir: "controller" directory of your application, same as x('root_dir') . '/app/controller'
+
+model_dir: "model" directory of your application, same as x('root_dir') . '/app/model'
+
+view_dir: "view" directory of your application, same as x('root_dir') . '/app/view'
+
+lib_dir: "view" directory of your application, same as x('root_dir') . '/lib'
+
+helper_dir: "helper" directory of your application, same as x('root_dir') . '/helper'
+
+vendor_dir: "helper" directory of your application, same as x('root_dir') . '/vendor'
+
+xfree_lib_dir: "helper" directory of your application, same as x('root_dir') . '/lib/vendor/xfree'
+
+log_dir: "helper" directory of your application, same as x('root_dir') . '/log'
+
+log_file: "helper" directory of your application, same as x('root_dir') . '/log/' . x('x.env') . '.log'
+
+web environment only:
+-----------
+x.request.uri: same as $_SERVER['REQUEST_URI']
+
+x.request.method: same as $_SERVER['REQUEST_METHOD']
+
+x.request.method: same as $_SERVER['REQUEST_METHOD']
+
+x.request.host: same as $_SERVER['HTTP_HOST']
+
+x.request.is_ajax: check if the request is AJAX style, true or false
+
+x.request.is_ssl: check if the request is SSL, true if the $_SERVER['SERVER_PORT'] is 443, false otherwise.
+
+x.request.time: same as $_SERVER['REQUEST_TIME']
+
+x.request.port: same as $_SERVER['SERVER_PORT']
+
+By the way, you can get all of pre-defined and user defined variables by call the X::vars() method.
+Set and get variable with the "x()" it's also easy:
+

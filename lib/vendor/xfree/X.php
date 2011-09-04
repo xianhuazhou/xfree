@@ -43,6 +43,15 @@ class X {
     }
 
     /**
+     * get all available variables
+     *
+     * @return array
+     */
+    public static function vars() {
+        return self::$vars;
+    }
+
+    /**
      * remove a variable 
      *
      * @return void
@@ -284,7 +293,6 @@ class X {
 
             'root_dir' => $rootDir,
             'app_dir' => $appDir,
-            'config_dir' => $rootDir . '/config',
             'controller_dir' => $appDir . '/controller',
             'model_dir' => $appDir . '/model',
             'view_dir' => $appDir . '/view',
@@ -316,7 +324,9 @@ class X {
             self::$vars = array_merge(self::$vars, array(
                 'x.request.uri' => $_SERVER['REQUEST_URI'],
                 'x.request.method' => $_SERVER['REQUEST_METHOD'],
+                'x.request.port' => $_SERVER['SERVER_PORT'],
                 'x.request.host' => $_SERVER['HTTP_HOST'],
+                'x.request.is_ssl' => $_SERVER['SERVER_PORT'] == 443,
                 'x.request.is_ajax' => isset($_SERVER['X_REQUESTED_WITH']) && $_SERVER['X_REQUESTED_WITH'] == 'XMLHttpRequest',
                 'x.request.time' => $_SERVER['REQUEST_TIME'],
             ));
