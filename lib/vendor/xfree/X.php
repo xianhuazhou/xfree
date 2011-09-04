@@ -290,6 +290,11 @@ class X {
             'x.routes' => array(), 
             'x.exception.controller' => '\\xfree\\ErrorController',
             'x.env' => $xENV,
+            'x.asset.image_directory' => '/images',
+            'x.asset.js_directory' => '/js',
+            'x.asset.css_directory' => '/css',
+            'x.asset.host' => '',
+            'x.asset.files_mapping' => array(),
 
             'root_dir' => $rootDir,
             'app_dir' => $appDir,

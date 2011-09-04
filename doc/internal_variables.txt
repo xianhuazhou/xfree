@@ -44,6 +44,21 @@ x('x.storage_engine', array(
     )
 ));
 
+x.asset.image_directory: image files directory, default value is "/images"
+
+x.asset.js_directory: javascript files directory, default value is "/js"
+
+x.asset.css_directory: stylesheet files directory,  default value is "/css"
+
+x.asset.host: asset host for images, javascripts and stylesheets, default is empty
+
+x.asset.files_mapping: optional, it's an array variable, for production environment only, 
+usually for compressed javascript/stylesheet files, e.g.
+array(
+  '/js/jquery.js' => '/js/jquery-a38cd-min.js',
+  '/css/main.css' => '/css/main-9dcd23-min.css'
+)
+
 root_dir: root directory of your application
 
 app_dir: "app" directory of your application, same as x('root_dir') . '/app'

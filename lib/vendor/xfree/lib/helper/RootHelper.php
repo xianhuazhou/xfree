@@ -83,6 +83,8 @@ function is_ajax_request() {
     return v('x.request.ajax');
 }
 
+// assets related functions
+
 function path_for($name, $options = array()) {
     $route = X::findRouteByName($name);
     $path = $route['path'];
@@ -94,6 +96,38 @@ function path_for($name, $options = array()) {
         );
     }
     return $path;
+}
+
+function asset_host() {
+    return x('x.asset.host') ?: '';
+}
+
+function asset_path($file, $absolute = false) {
+    if ($filesMapping = x('x.asset.files_mapping')) {
+        if (isset($filesMapping[$file])) {
+            $file = $filesMapping[$file];
+        }
+    }
+    $file = asset_host() . $file;
+    if ($absolute && (false === strpos($file, 'http'))) {
+
+        # TODO need check for SSL?
+        $file = 'http://' . v('x.request.host') . $file; 
+    }
+
+    return $file;
+}
+
+function image_path($image, $absolute = false) {
+    return asset_path(v('x.asset.image_directory') . '/' . $image, $absolute);
+}
+
+function js_path($js, $absolute = false) {
+    return asset_path(v('x.asset.js_directory') . '/' . $js, $absolute);
+}
+
+function css_path($css, $absolute = false) {
+    return asset_path(v('x.asset.css_directory') . '/' . $css, $absolute);
 }
 
 // --- render layout view related --
