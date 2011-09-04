@@ -1,4 +1,4 @@
-With the x() method, we can access the following built-in availables:
+With the v() method, we can access the following built-in availables:
 
 x.debug: enable or disable the debug mode, recommend enable it only on production environment.
 
@@ -9,40 +9,40 @@ x.exception.controller: built-in controller for exceptions handle
 x.env: environment name such as 'dev', 'production' etc. 
 
 x.storage_engine: database related settings for PDO or MongoDB. e.g.
-x('x.storage_engine', array(
+    v('x.storage_engine', array(
 
-    // pdo, Master/Slave supported by default
-    'default' => array(
-        'master' => array(
-            array(
-                'dsn' => 'mysql:host=localhost;dbname=xfree',
-                'username' => 'root',
-                'password' => 'pa$$word'
+        // pdo, Master/Slave supported by default
+        'default' => array(
+            'master' => array(
+                array(
+                    'dsn' => 'mysql:host=localhost;dbname=xfree',
+                    'username' => 'root',
+                    'password' => 'pa$$word'
+                )
+
+                // can add more master databases here
+            ),
+
+            // optional
+            'slave' => array(
+                array(
+                    'dsn' => 'mysql:host=slave1;dbname=xfree',
+                    'username' => 'root',
+                    'password' => 'pa$$word'
+                ),
+                array(
+                    'dsn' => 'mysql:host=slave2;dbname=xfree',
+                    'username' => 'root',
+                    'password' => 'pa$$word'
+                ),
             )
-
-            // can add more master databases here
         ),
 
-        // optional
-        'slave' => array(
-            array(
-                'dsn' => 'mysql:host=slave1;dbname=xfree',
-                'username' => 'root',
-                'password' => 'pa$$word'
-            ),
-            array(
-                'dsn' => 'mysql:host=slave2;dbname=xfree',
-                'username' => 'root',
-                'password' => 'pa$$word'
-            ),
+        // MongoDB (only one database here for log), no Master/Slave needed, Replica sets is better than the Master/Slave mode.
+        'log' => array(
+            'dsn' => 'mongodb://localhost:27017/user'
         )
-    ),
-
-    // MongoDB (only one database here for log), no Master/Slave needed, Replica sets is better than the Master/Slave mode.
-    'log' => array(
-        'dsn' => 'mongodb://localhost:27017/user'
-    )
-));
+    ));
 
 x.asset.image_directory: image files directory, default value is "/images"
 
@@ -54,10 +54,10 @@ x.asset.host: asset host for images, javascripts and stylesheets, default is emp
 
 x.asset.files_mapping: optional, it's an array variable, for production environment only, 
 usually for compressed javascript/stylesheet files, e.g.
-array(
-  '/js/jquery.js' => '/js/jquery-a38cd-min.js',
-  '/css/main.css' => '/css/main-9dcd23-min.css'
-)
+    array(
+      '/js/jquery.js' => '/js/jquery-a38cd-min.js',
+      '/css/main.css' => '/css/main-9dcd23-min.css'
+    )
 
 root_dir: root directory of your application
 
@@ -102,5 +102,9 @@ x.request.time: same as $_SERVER['REQUEST_TIME']
 x.request.port: same as $_SERVER['SERVER_PORT']
 
 By the way, you can get all of pre-defined and user defined variables by call the X::vars() method.
-Set and get variable with the "x()" it's also easy:
+Set and get variable with the "v()" it's also easy:
+    // set
+    v('user.name', 'Zhou');
 
+    // get
+    v('user.name');

@@ -99,11 +99,11 @@ function path_for($name, $options = array()) {
 }
 
 function asset_host() {
-    return x('x.asset.host') ?: '';
+    return v('x.asset.host') ?: '';
 }
 
 function asset_path($file, $absolute = false) {
-    if ($filesMapping = x('x.asset.files_mapping')) {
+    if ($filesMapping = v('x.asset.files_mapping')) {
         if (isset($filesMapping[$file])) {
             $file = $filesMapping[$file];
         }
