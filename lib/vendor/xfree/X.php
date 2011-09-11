@@ -103,6 +103,11 @@ class X {
         }
 
         foreach (self::get('x.routes') as $route) {
+
+            if ($method != $route['method']) {
+                continue;
+            }
+
             $routePath = $route['path'];
             $routePathRegex = preg_replace('#/:\w+#', '/(\w+)', $routePath);
             if (preg_match('#^' . $routePathRegex . '$#', $path, $paramValues)) {
@@ -287,8 +292,12 @@ class X {
         $vendorDir = $rootDir . '/lib/vendor';
         $configDir = $rootDir . '/config';
 
-        $scriptName = basename($_SERVER['SCRIPT_FILENAME']);
-        $xENV = substr($scriptName, 0, strpos($scriptName, '.'));
+        if (isset(self::$vars['x.env'])) {
+            $xENV = self::$vars['x.env'];
+        } else {
+            $scriptName = basename($_SERVER['SCRIPT_FILENAME']);
+            $xENV = substr($scriptName, 0, strpos($scriptName, '.'));
+        }
 
         self::$vars = array(
             'x.debug' => false,
@@ -323,8 +332,8 @@ class X {
         );
 
         // load xfree related files
-        require $xfreeDir . '/lib/helper/RootHelper.php';
-        require $xfreeDir . '/lib/xfree/exceptions.php';
+        require_once $xfreeDir . '/lib/helper/RootHelper.php';
+        require_once $xfreeDir . '/lib/xfree/exceptions.php';
 
         // autoload
         spl_autoload_register(__CLASS__ . '::autoload');
@@ -342,17 +351,17 @@ class X {
             ));
 
             // load routes
-            require $configDir . '/routes.php';
+            require_once $configDir . '/routes.php';
 
             // load environment
-            require $configDir . '/environments/' . $scriptName;
+            require_once $configDir . '/environments/' . $scriptName;
 
             $envConfigFiles = glob($configDir . '/environments/' . $xENV . '/*.php');
             sort($envConfigFiles);
 
             // load config files in the specify environment directory
             foreach ($envConfigFiles as $file) {
-                require $file;
+                require_once $file;
             }
         }
     }

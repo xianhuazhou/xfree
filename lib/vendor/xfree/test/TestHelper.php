@@ -7,6 +7,8 @@ require __DIR__ . '/TestCase.php';
 
 use xfree\X;
 
+X::set('x.env', 'test');
+
 class TestHelper extends X {
     public static function initialize() {
         parent::initialize();
@@ -38,6 +40,14 @@ class TestHelper extends X {
                 'dsn' => 'mongodb://localhost:27017/mongo'
             )
         ));
+    }
+
+    public static function testFindRoute($path, $method) {
+        return self::findRoute($path, $method);
+    }
+
+    public static function testRenderRoute($route) {
+        return self::renderRoute($route);
     }
 }
 
