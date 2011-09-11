@@ -2,7 +2,13 @@
 namespace xfree\test;
 require __DIR__ . '/../TestHelper.php';
 use xfree\X;
+use xfree\Controller;
 
+class TestController extends Controller {
+    public function indexAction() {
+        echo 'test test indexAction';
+    }
+}
 
 class XTest extends TestCase {
     public function setUp() {
@@ -96,5 +102,24 @@ class XTest extends TestCase {
         TestHelper::testRenderRoute($routes[0]);
         $data = ob_get_clean();
         $this->assertEquals('blabla', $data);
+
+        X::addRoute('/test', array(
+            '200 OK',
+            array('Content-Type: text/html'),
+            '<!DOCTYPE html><head></head><body></body></html>'
+        ));
+        $routes = X::get('x.routes');
+        ob_start();
+        error_reporting(0);
+        TestHelper::testRenderRoute($routes[1]);
+        $data = ob_get_clean();
+        $this->assertEquals('<!DOCTYPE html><head></head><body></body></html>', $data);
+
+        X::addRoute('/my', 'xfree\test\TestController#index');
+        $routes = X::get('x.routes');
+        ob_start();
+        TestHelper::testRenderRoute($routes[2]);
+        $data = ob_get_clean();
+        $this->assertEquals('test test indexAction', $data);
     }
 }

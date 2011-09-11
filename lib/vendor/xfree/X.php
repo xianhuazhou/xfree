@@ -18,9 +18,6 @@ class X {
     // global vars
     private static $vars = array();
 
-    // class paths
-    private static $classPaths = array();
-
     /**
      * set a var
      * 
@@ -274,7 +271,7 @@ class X {
     public static function autoload($klass) {
         $rootDir = self::get('root_dir');
         $klassPath = '/' . str_replace('\\', '/', $klass) . '.php'; 
-        foreach (self::$classPaths as $dir) {
+        foreach (self::get('x.classpaths') as $dir) {
             if (file_exists($dir . $klassPath)) {
                 require $dir . $klassPath;
                 return;
@@ -311,6 +308,12 @@ class X {
             'x.asset.css_directory' => '/css',
             'x.asset.host' => '',
             'x.asset.files_mapping' => array(),
+            'x.classpaths' => array(
+                $rootDir . '/lib',
+                $appDir . '/model',
+                $appDir . '/controller',
+                $xfreeDir . '/lib'
+            ),
 
             'root_dir' => $rootDir,
             'app_dir' => $appDir,
@@ -323,14 +326,7 @@ class X {
             'vendor_dir' => $rootDir . '/vendor',
             'xfree_lib_dir' => $xfreeDir . '/lib',
             'log_dir' => $rootDir . '/log',
-            'log_file' => $rootDir . '/log/' . $xENV . '.log',
-        );
-
-        self::$classPaths = array(
-            self::get('lib_dir'),
-            self::get('model_dir'),
-            self::get('controller_dir'),
-            self::get('xfree_lib_dir'),
+            'log_file' => $rootDir . '/log/' . $xENV . '.log' 
         );
 
         // load xfree related files
