@@ -1,6 +1,6 @@
 <?php
 namespace xfree\test;
-require __DIR__ . '/../TestHelper.php';
+require __DIR__ . '/TestHelper.php';
 use xfree\X;
 use xfree\Controller;
 
