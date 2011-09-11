@@ -10,7 +10,6 @@ use xfree\X;
 class TestHelper extends X {
     public static function initialize() {
         parent::initialize();
-        load_configuration_for(array());
         layout('default');
         self::configStorageEngine();
     }
