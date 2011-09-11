@@ -52,7 +52,6 @@ class X {
      * remove a variable 
      *
      * @return void
-     * @author zhou 2011-05-19
      **/
     public static function remove($k)
     {

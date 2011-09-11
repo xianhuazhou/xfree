@@ -1,7 +1,7 @@
 <?php
 namespace xfree\test;
 
-define('ROOT_DIR', realpath(__DIR__ . '/..'));
+define('ROOT_DIR', realpath(__DIR__ . '/../..'));
 require ROOT_DIR . '/X.php';
 require __DIR__ . '/TestCase.php';
 

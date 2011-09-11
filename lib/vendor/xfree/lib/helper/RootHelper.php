@@ -15,22 +15,13 @@ function o($v) {
     echo v($v);
 }
 
-function v_clear($v) {
-    X::clear($v);
+function remove_v($v) {
+    X::remove($v);
 }
 
 // get field value
 function param($field) {
-    return @$_POST[$field] ?: (@$_GET[$field] ?: v('param.' . $field));
-}
-
-function load_configuration_for($files) {
-    array_map(function($file){
-        $vars = include(v('config_dir') . '/' . $file . '.php');
-        array_walk($vars, function($item, $key){
-            v($key, $item);
-        });
-    }, $files); 
+    return isset($_POST[$field]) ? $_POST[$field] : v('param.' . $field);
 }
 
 function get($path, $action, $name = '') {
@@ -80,10 +71,8 @@ function is_delete_request() {
 }
 
 function is_ajax_request() {
-    return v('x.request.ajax');
+    return v('x.request.is_ajax');
 }
-
-// assets related functions
 
 function path_for($name, $options = array()) {
     $route = X::findRouteByName($name);
@@ -97,6 +86,8 @@ function path_for($name, $options = array()) {
     }
     return $path;
 }
+
+// assets related functions
 
 function asset_host() {
     return v('x.asset.host') ?: '';
