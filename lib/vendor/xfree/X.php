@@ -91,6 +91,8 @@ class X {
             throw new InvalidRequestException();
         }
 
+        $method = strtolower($method);
+
         // parse query string
         if (strpos($path, '?')) {
             $path = explode('?', $path);
