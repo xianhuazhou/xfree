@@ -27,7 +27,7 @@ lighttpd.conf:
 $HTTP["host"] == "xfree.lab" {
   server.name    = "xfree.lab"
   server.document-root = "/var/www/html/xfree/public_html"
-  url.rewrite-if-not-file = ("^/(.+?)$" => "/dev.php?$1")
+  url.rewrite-if-not-file = ("^(.+?)$" => "/dev.php?$1")
 }
 
 server.modules += ( "mod_fastcgi" )

@@ -91,9 +91,14 @@ class X {
             throw new InvalidRequestException();
         }
 
+        // parse query string
         if (strpos($path, '?')) {
             $path = explode('?', $path);
-            array_pop($path);
+            $queryString = array_pop($path);
+            parse_str($queryString, $params);
+            foreach($params as $k => $v) {
+                self::set('param.' . $k, $v);
+            }
             $path = join('?', $path);
         }
 
@@ -341,6 +346,14 @@ class X {
 
             // load environment
             require $configDir . '/environments/' . $scriptName;
+
+            $envConfigFiles = glob($configDir . '/environments/' . $xENV . '/*.php');
+            sort($envConfigFiles);
+
+            // load config files in the specify environment directory
+            foreach ($envConfigFiles as $file) {
+                require $file;
+            }
         }
     }
 }
