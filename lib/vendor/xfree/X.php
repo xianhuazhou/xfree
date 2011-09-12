@@ -213,6 +213,8 @@ class X {
 
         if (!$result && !self::get('rendered:' . $controller . '#' . $action)) {
             render();
+        } else {
+            echo $result;
         }
     }
 
