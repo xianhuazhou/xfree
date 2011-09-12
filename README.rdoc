@@ -6,6 +6,4 @@ It's inspired by the fatfree framework, require php5.3+.
 
 I need a framework which can do things like Sinatra and Rails(more or less) in PHP.
 
-== How to use it ?
-
-fork && DIY.
+It's not ready yet, I'm still working on that.
