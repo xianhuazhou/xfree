@@ -59,6 +59,8 @@ usually for compressed javascript/stylesheet files, e.g.
       '/css/main.css' => '/css/main-9dcd23-min.css'
     )
 
+x.classpaths: load classes from pre-defined paths "app/controller", "app/model", "lib" and "lib/vendor/xfree/lib"
+
 root_dir: root directory of your application
 
 app_dir: "app" directory of your application, same as x('root_dir') . '/app'
