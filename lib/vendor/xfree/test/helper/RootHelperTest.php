@@ -5,11 +5,24 @@ use xfree\X;
 
 class RootHelperTest extends TestCase {
     public function setUp() {
+        TestHelper::initialize();
+        $this->rmdir_r(__DIR__ . '/test_render');
     }
 
     public function tearDown() {
-        TestHelper::initialize();
+        $this->setUp();
     }
+
+    private function rmdir_r($dir) {
+        if (!is_dir($dir)) {
+            return;
+        }
+        $objects = glob($dir . '/*');
+        foreach ($objects as $object) {
+            is_dir($object) ? $this->rmdir_r($object) : unlink($object);
+        }
+        rmdir($dir);
+    } 
 
     public function testV() {
         v('a', 'A');
@@ -138,5 +151,59 @@ class RootHelperTest extends TestCase {
 
     public function testImagePath() {
         $this->assertEquals('/images/a.jpg', image_path('a.jpg'));
+    }
+
+    public function testJsPath() {
+        $this->assertEquals('/js/app.js', js_path('app.js'));
+    }
+
+    public function testCssPath() {
+        $this->assertEquals('/css/app.css', css_path('app.css'));
+    }
+
+    public function testRender() {
+        v('view_dir', __DIR__ . '/test_render');
+        v('__layout__', null);
+        $viewControllerDir = v('view_dir') . '/Controller';
+        mkdir($viewControllerDir, 0755, true);
+        mkdir(v('view_dir') . '/layout', 0755, true);
+        file_put_contents(v('view_dir') . '/layout/my_layout.php', 'hello <?php yield() ?>');
+
+        file_put_contents($viewControllerDir . '/index.php', 'view content');
+        ob_start();
+        render('Controller/index');
+        $this->assertEquals('view content', ob_get_clean());
+
+        v('x.current.controller', 'Controller');
+        v('x.current.action', 'index');
+        ob_start();
+        render();
+        $this->assertEquals('view content', ob_get_clean());
+        $this->assertEquals('Controller', controller_name());
+        $this->assertEquals('index', action_name());
+
+        v('__layout__', 'my_layout'); 
+        ob_start();
+        render();
+        $this->assertEquals('hello view content', ob_get_clean());
+    }
+
+    public function testSlot() {
+        start_slot();
+        echo "test slot";
+        end_slot_as('my_slot');
+
+        ob_start();
+        yield_slot('my_slot');
+        $this->assertEquals('test slot', ob_get_clean());
+    }
+
+    public function testFlash() {
+        error_reporting(0);
+        session_start();
+        flash('notice', 'blabla');
+        $this->assertTrue(has_flash('notice'));
+        $this->assertEquals('blabla', flash('notice'));
+        $this->assertFalse(has_flash('notice'));
     }
 }

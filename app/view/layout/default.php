@@ -8,7 +8,7 @@
     <title><?php o('title') ?></title>
 </head>
     <body>
-        <?php echo yield() ?>
+        <?php yield() ?>
         <hr>
     </body>
 </html>

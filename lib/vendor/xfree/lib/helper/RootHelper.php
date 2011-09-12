@@ -123,17 +123,32 @@ function css_path($css, $absolute = false) {
 
 // --- render layout view related --
 function render($template = null) {
+    $controllerDir = str_replace(
+        '\\', 
+        '/', 
+        controller_name()
+    );
+
     if ($template == null) {
-        $template = str_replace('\\', '/', controller_name()) . 
-        '/' . strtolower(action_name()) . '.php';
+        $template = $controllerDir . '/' . action_name() . '.php';
+    } else {
+        if (false === strpos($template, '.php')) {
+            $template .= '.php';
+        }
+        if (false === strpos($template, '/')) {
+            $template = $controllerDir . '/' . $template;
+        }
     }
 
     $viewDir = v('view_dir');
 
+    if ('/' != substr($template, 0, 1)) {
+        $template = $viewDir . '/' . $template;
+    }
+
     ob_start();
-    require $viewDir . '/' . $template;
-    $viewResult = ob_get_contents();
-    ob_end_clean();
+    require $template;
+    $viewResult = ob_get_clean();
 
     if (v('__layout__')) {
         v('__view_content__', $viewResult);
@@ -150,7 +165,7 @@ function render($template = null) {
 function renderAsString($template = null) {
     ob_start();
     render($template);
-    ob_get_clean();
+    return ob_get_clean();
 }
 
 function current_route() {
@@ -170,7 +185,7 @@ function layout($layout) {
 }
 
 function yield($name = '__view_content__') {
-    return v($name);
+    o($name);
 }
 // end --- render layout view related --
 
@@ -180,8 +195,7 @@ function start_slot() {
 }
 
 function end_slot_as($name) {
-    $slotData = ob_get_contents();
-    ob_end_clean();
+    $slotData = ob_get_clean();
 
     xfree\Logger::log(
         xfree\Logger::INFO, 
@@ -191,8 +205,8 @@ function end_slot_as($name) {
     return v('__slot_data__' . $name, $slotData);
 }
 
-function use_slot($name) {
-    return v('__slot_data__' . $name);
+function yield_slot($name) {
+    o('__slot_data__' . $name);
 }
 // end --- slot --
 
