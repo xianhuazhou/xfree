@@ -123,14 +123,17 @@ function css_path($css, $absolute = false) {
 
 // --- render layout view related --
 function render($template = null) {
+    $controller = controller_name();
+    $action = action_name();
+
     $controllerDir = str_replace(
         '\\', 
         '/', 
-        controller_name()
+        $controller
     );
 
     if ($template == null) {
-        $template = $controllerDir . '/' . action_name() . '.php';
+        $template = $controllerDir . '/' . $action . '.php';
     } else {
         if (false === strpos($template, '.php')) {
             $template .= '.php';
@@ -141,6 +144,10 @@ function render($template = null) {
     }
 
     $viewDir = v('view_dir');
+    if (strpos($controllerDir, '/app/controller/')) {
+        $template = v('plugin_dir') . '/' . 
+            str_replace('/app/controller/', '/app/view/', $template);
+    }
 
     if ('/' != substr($template, 0, 1)) {
         $template = $viewDir . '/' . $template;
@@ -156,6 +163,8 @@ function render($template = null) {
     } else {
         echo $viewResult;
     }
+
+    v('rendered:' . $controller . '#' . $action, true);
 
     Logger::info(sprintf(
         'Render template: %s', $viewDir . '/' . $template

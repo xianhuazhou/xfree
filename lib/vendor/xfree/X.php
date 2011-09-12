@@ -23,9 +23,11 @@ class X {
      * 
      * @param string $k
      * @param mixed $v
+     *
+     * @return $v;
      */
     public static function set($k, $v) {
-        self::$vars[$k] = $v;
+        return self::$vars[$k] = $v;
     }
 
     /**
@@ -201,11 +203,17 @@ class X {
     protected static function renderAction($klass, $method)
     {
         Logger::info(sprintf('Render action: %s::%s', $klass, $method));
-        v('x.current.controller', substr($klass, 0, -10));
-        v('x.current.action', $method);
+        $controller = self::set('x.current.controller', substr($klass, 0, -10));
+        $action = self::set('x.current.action', $method);
         $method .= self::ACTION_SUFFIX;
         $kls = new $klass;
+        ob_start();
         $kls->$method();
+        $result = ob_get_clean();
+
+        if (!$result && !self::get('rendered:' . $controller . '#' . $action)) {
+            render();
+        }
     }
 
     /**
@@ -311,11 +319,13 @@ class X {
                 $rootDir . '/lib',
                 $appDir . '/model',
                 $appDir . '/controller',
-                $xfreeDir . '/lib'
+                $xfreeDir . '/lib',
+                $rootDir . '/lib/plugin'
             ),
 
             'root_dir' => $rootDir,
             'app_dir' => $appDir,
+            'plugin_dir' => $rootDir . '/lib/plugin',
             'controller_dir' => $appDir . '/controller',
             'model_dir' => $appDir . '/model',
             'view_dir' => $appDir . '/view',
@@ -352,14 +362,47 @@ class X {
 
             // load environment
             require_once $configDir . '/environments/' . $scriptName;
+        }
 
-            $envConfigFiles = glob($configDir . '/environments/' . $xENV . '/*.php');
-            sort($envConfigFiles);
+        self::loadFilesInDirectory($configDir . '/environments/' . $xENV);
 
-            // load config files in the specify environment directory
-            foreach ($envConfigFiles as $file) {
-                require_once $file;
+        // load plugins
+        self::loadPlugins(); 
+    }
+
+    /**
+     * load plugins
+     */
+    private static function loadPlugins() {
+        $plugins = array();
+        $pluginsLibs = array();
+        $xENV = self::$vars['x.env'];
+        foreach (glob(self::$vars['plugin_dir'] . '/*/plugin.enabled') as $file) {
+            $pluginDir = dirname($file);
+            if (file_exists($pluginDir . '/config/routes.php')) {
+                require_once $pluginDir . '/config/routes.php';
             }
+            $pluginsLibs[] = $pluginDir . '/lib';
+            self::loadFilesInDirectory($pluginDir . '/config/environments' . $xENV);
+            $plugins[] = basename($pluginDir);
+        }
+
+        if ($plugins) {
+            self::$vars['x.classpaths'] = array_merge(self::$vars['x.classpaths'], $pluginsLibs);
+            self::$vars['x.plugins'] = $plugins;
+        }
+    }
+
+    /**
+     * load files in the given directory $dir
+     *
+     * @param string $dir
+     */
+    private static function loadFilesInDirectory($dir) {
+        $files = glob($dir . '/*.php');
+        sort($files);
+        foreach ($files as $file) {
+            require_once $file;
         }
     }
 }
