@@ -88,7 +88,7 @@ class StorageEngine {
      *
      * @param array $dsnInfos
      * @param bool $throwException true means throw an exception if there is 
-     *                             no available connection found, false return null 
+     *                             no available connection found, return null on false 
      * @return array
      */
     private function getPDOConnection(Array $dsnInfos, $throwException = true) {
@@ -111,6 +111,10 @@ class StorageEngine {
                     $options
                 );
             } catch (\PDOException $e) {
+                Logger::error(sprintf(
+                    'Invalid PDO Connection: %s, DSN info: %s',
+                    $e->getMessage(), $dsnInfo['dsn']
+                ));
                 continue;
             }
         }
@@ -120,7 +124,7 @@ class StorageEngine {
                 'StoreEngine - No PDO Connection avaiable.: %s',
                 print_r($dsnInfos, true)
             ));
-            throw new PDOConnectionException();
+            throw new \xfree\exceptions\PDOConnectionException();
 
         } else {
             return null;

@@ -86,7 +86,7 @@ class X {
      **/
     protected static function findRoute($path, $method = self::METHOD_ANY) {
         if ($method != self::METHOD_ANY && $method != self::get('x.request.method')) {
-            throw new InvalidRequestException();
+            throw new \xfree\exceptions\InvalidRequestException();
         }
 
         $method = strtolower($method);
@@ -133,7 +133,7 @@ class X {
             }
         }
 
-        throw new NoRouteFoundException();
+        throw new \xfree\exceptions\NoRouteFoundException();
     }
 
     /**
@@ -169,7 +169,7 @@ class X {
             list($klass, $method) = explode(self::ROUTE_SEP, $action);
             $method = $method ?: 'index';
             if (!method_exists($klass, $method . self::ACTION_SUFFIX)) {
-                throw new NoActionFoundException("class: " . $klass . ", method: " . $method);
+                throw new \xfree\exceptions\NoActionFoundException("class: " . $klass . ", method: " . $method);
             }
             return self::renderAction($klass, $method);
         }

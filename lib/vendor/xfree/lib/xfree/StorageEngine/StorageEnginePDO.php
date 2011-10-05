@@ -1,6 +1,5 @@
 <?php
 namespace xfree\StorageEngine;
-use xfree\StorageEngineException;
 
 /**
  * StorageEnginePDO contains PDO related actions.
@@ -125,7 +124,7 @@ class StorageEnginePDO {
                 $obj->errorInfo(), 
                 $sql
             ));
-            throw new StorageEngineException('Can not execute the SQL: ' . $sql . "\n " . 
+            throw new \xfree\exceptions\StorageEngineException('Can not execute the SQL: ' . $sql . "\n " . 
                 print_r($obj->errorInfo(), true)
             );
         }

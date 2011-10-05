@@ -1,5 +1,5 @@
 <?php
-namespace xfree;
+namespace xfree\exceptions;
 // exceptions
 class X_Exception extends \Exception {}
 class InvalidRequestException extends X_Exception {
