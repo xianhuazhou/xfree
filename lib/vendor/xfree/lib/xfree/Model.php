@@ -213,6 +213,7 @@ class Model {
      */
     public function validate() {
         $validator = X::validator();
+        $this->clearErrors();
         foreach ($this->FIELDS as $k => $v) {
             if (!is_array($v)) {
                 continue;
@@ -240,6 +241,13 @@ class Model {
         }
 
         return $this->hasErrors();
+    }
+
+    /**
+     * clear errors
+     */
+    public function clearErrors() {
+        $this->_errors = array();
     }
 
     /**

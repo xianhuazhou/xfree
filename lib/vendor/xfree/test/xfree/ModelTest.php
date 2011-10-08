@@ -38,7 +38,7 @@ class Post extends Model {
                 'string' => array(
                     'options' => array(
                         'min_length' => 5,
-                        'max_length' => 20
+                        'max_length' => 10
                     ),
                     'errors' => array(
                         'min_length' => 'Title is too short',
@@ -153,6 +153,7 @@ class ModelTest extends TestCase {
         $this->assertFalse($post->validate());
         $this->assertTrue($post->hasError('publish'));
         $this->assertEquals('publish is invalid', $post->getError('publish'));
+        $this->assertEquals(1, count($post->getErrors()));
 
         $post->publish = 2;
         $this->assertFalse($post->validate());
@@ -164,7 +165,20 @@ class ModelTest extends TestCase {
         $this->assertFalse($post->validate());
         $this->assertTrue($post->hasError('content'));
         $this->assertEquals('Content can not be blank', $post->getError('content'));
+        $this->assertEquals(1, count($post->getErrors()));
 
+        $post->content = 'blabla...';
+        $post->title = 'tit';
+        $this->assertFalse($post->validate());
+        $this->assertTrue($post->hasError('title'));
+        $this->assertEquals('Title is too short', $post->getError('title'));
+
+        $post->title = str_repeat('title', 10);
+        $this->assertFalse($post->validate());
+        $this->assertEquals('Title is too long', $post->getError('title'));
+
+        $post->title = '';
+        $this->assertTrue($post->validate());
     }
 
     public function testUpdate() {
