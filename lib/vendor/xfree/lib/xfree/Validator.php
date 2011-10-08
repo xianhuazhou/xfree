@@ -4,6 +4,18 @@ namespace xfree;
  * Validator class
  */
 class Validator {
+    private static $instance = null;
+
+    private function __construct() {
+    }
+
+    public static function getInstance() {
+        if (self::$instance) {
+            return self::$instance;
+        }
+
+        return self::$instance = new Validator();
+    }
 
     /**
      * email validation
@@ -57,6 +69,17 @@ class Validator {
      * @return bool
      */
     public function required($data) {
+        return $this->not_blank($data);
+    }
+
+    /**
+     * check if the data is not empty 
+     *
+     * @param string $data
+     *
+     * @return bool
+     */
+    public function not_blank($data) {
         return !$this->blank($data);
     }
 
@@ -89,10 +112,11 @@ class Validator {
         }
 
         $length = function_exists('mb_strlen') ? mb_strlen($data) : strlen($data);
-        if ($this->lessThan($length, $options, 'min_length') || 
-            $this->greaterThan($length, $options, 'max_length')
-        ) {
-            return false;
+        if ($this->lessThan($length, $options, 'min_length')) {
+            return 'min_length';
+        } 
+        if ($this->greaterThan($length, $options, 'max_length')) {
+            return 'max_length';
         }
 
         if (isset($options['in_array']) && !in_array($data, $options['in_array'])) {
@@ -105,24 +129,25 @@ class Validator {
     /**
      * check if it's an number with some options 
      * avaliable options:
-     *   min_length: minimum number 
-     *   max_length: maximum number 
+     *   min: minimum number 
+     *   max: maximum number 
      *   in_array: list of numbers in a array
      *
      * @param mixed $number
      * @param array $options
      *
-     * @return bool
+     * @return mixed true on success, false otherwise 
      */
     public function number($number, Array $options = array()) {
         if (!is_numeric($number)) {
             return false;
         }
 
-        if ($this->lessThan($number, $options, 'min') || 
-            $this->greaterThan($number, $options, 'max')
-        ) {
-            return false;
+        if ($this->lessThan($number, $options, 'min')) {
+            return 'min';
+        }
+        if ($this->greaterThan($number, $options, 'max')) {
+            return 'max';
         }
 
         if (isset($options['in_array']) && !in_array($number, $options['in_array'])) {
@@ -135,33 +160,35 @@ class Validator {
     /**
      * check if it's an integer with some options 
      * avaliable options:
-     *   min_length: minimum integer 
-     *   max_length: maximum integer 
+     *   min: minimum integer 
+     *   max: maximum integer 
      *   in_array: list of integer numbers in a array
      *
      * @param mixed $number
      * @param array $options
      *
-     * @return bool
+     * @return mixed 
      */
     public function integer($number, Array $options = array()) {
-        return $this->number($number, $options) && is_integer(0 + $number);
+        $isNumber = $this->number($number, $options);
+        return $isNumber === true ? is_integer(0 + $number) : $isNumber;
     }
 
     /**
      * check if it's an float with some options 
      * avaliable options:
-     *   min_length: minimum float 
-     *   max_length: maximum float 
+     *   min: minimum float 
+     *   max: maximum float 
      *   in_array: list of float numbers in a array
      *
      * @param mixed $number
      * @param array $options
      *
-     * @return bool
+     * @return mixed 
      */
     public function float($number, Array $options = array()) {
-        return $this->number($number, $options) && is_float(0 + $number);
+        $isNumber = $this->number($number, $options);
+        return $isNumber === true ? is_float(0 + $number) : $isNumber;
     }
 
     /**

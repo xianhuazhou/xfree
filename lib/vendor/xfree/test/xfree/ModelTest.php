@@ -51,33 +51,27 @@ class ModelTest extends TestCase {
         $user = new User();
         $user->name = 'User Name';
         $user->pass = 'userPass';
-        $user->about = 'About ...';
         $fields = $user->getFields();
         $this->assertTrue($fields['name'] == 'User Name');
         $this->assertTrue($fields['pass'] == 'userPass');
-        $this->assertFalse(isset($fields['about']));
         $this->assertFalse(isset($fields['age']));
 
         $user = new User(array(
             'name' => 'User Name',
             'pass' => 'userPass',
-            'about' => 'About ...',
         ));
         $fields = $user->getFields();
         $this->assertTrue($fields['name'] == 'User Name');
         $this->assertTrue($fields['pass'] == 'userPass');
-        $this->assertFalse(isset($fields['about']));
         $this->assertFalse(isset($fields['age']));
 
         // MongoDB
         $book = new Book();
         $book->author = 'Author Name';
         $book->title = 'Book Title';
-        $book->desc = 'Blabla...';
         $fields = $book->getFields();
         $this->assertTrue($fields['author'] == 'Author Name');
         $this->assertTrue($fields['title'] == 'Book Title');
-        $this->assertFalse(isset($fields['desc']));
     }
 
     public function testCreate() {
@@ -96,7 +90,6 @@ class ModelTest extends TestCase {
         $book = new Book();
         $book->author = 'Author Name';
         $book->title = 'Book Title';
-        $book->desc = 'Blabla...';
         $book->create();
         $items = iterator_to_array($book->getConnection()->books->find(), false);
         $this->assertEquals(1, count($items));

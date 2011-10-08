@@ -69,6 +69,10 @@ class XTest extends TestCase {
         ), $routes[0]);
     }
 
+    public function testValidator() {
+        $this->assertTrue(X::validator() instanceof \xfree\Validator);
+    }
+
     public function testFindRoute() {
         X::addRoute('/me', 'Me#index', X::METHOD_GET, 'me');
         X::addRoute('/users/:number', 'Users#index', X::METHOD_GET, 'users');

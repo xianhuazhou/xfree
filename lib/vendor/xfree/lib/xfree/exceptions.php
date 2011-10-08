@@ -17,6 +17,11 @@ class NoActionFoundException extends X_Exception {
         parent::__construct('No Action found');
     }
 }
+class NoModelFieldException extends X_Exception {
+    public function __construct() {
+        parent::__construct('No Model Field found');
+    }
+}
 class StorageEngineException extends X_Exception {
     public function __construct() {
         parent::__construct('StorageEngine error');

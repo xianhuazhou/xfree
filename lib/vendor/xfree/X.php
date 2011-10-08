@@ -80,6 +80,15 @@ class X {
     }
 
     /**
+     * get validator
+     *
+     * @return Validator
+     */
+    public static function validator() {
+        return \xfree\Validator::getInstance();
+    }
+
+    /**
      * find a new route 
      *
      * @return array 

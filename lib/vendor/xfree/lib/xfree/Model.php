@@ -15,6 +15,11 @@ class Model {
     // observer class
     protected $_observer = null;
 
+    // all model fields based on the $FIELDS variable
+    protected $_MODEL_FIELDS = array();
+
+    protected $_errors = array();
+
     // some hookobserver related constants
     const HOOK_BEFORE_CREATE = 1;
     const HOOK_BEFORE_UPDATE = 2;
@@ -83,12 +88,33 @@ class Model {
      * @return bool
      */
     protected function setField($k, $v) {
-        if (in_array($k, $this->FIELDS)) {
+        if ($this->isValidField($k)) {
             $this->_fields[$k] = $v;
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * check if the given field is valid
+     *
+     * @param string $field
+     *
+     * @return bool
+     */
+    protected function isValidField($field) {
+        if (!$this->_MODEL_FIELDS) {
+            foreach ($this->FIELDS as $k => $v) {
+                if (is_string($k)) {
+                    $this->_MODEL_FIELDS[] = $k;
+                } elseif (is_string($v)) {
+                    $this->_MODEL_FIELDS[] = $v;
+                }
+            }
+        }
+
+        return in_array($field, $this->_MODEL_FIELDS);
     }
 
     /**
@@ -98,7 +124,9 @@ class Model {
      * @param string $v
      */
     public function __set($k, $v) {
-        return $this->setField($k, $v); 
+        if (!$this->setField($k, $v)) {
+            throw new \xfree\exceptions\NoModelFieldException();
+        } 
     }
 
     /**
@@ -173,6 +201,85 @@ class Model {
         $this->hookObserver(self::HOOK_AFTER_CREATE);
 
         return $this;
+    }
+
+    /**
+     * validate data
+     *
+     *
+     * @return bool  true on success, false on failure
+     */
+    public function validate() {
+        $validator = \xfree::validator();
+        foreach ($this->FIELDS as $k => $v) {
+            if (!is_array($v)) {
+                continue;
+            }
+            if (isset($v['if'])) {
+                if (!$validator->{$v['if']}()) {
+                    $this->setError($k, $v['if_error_message']);
+                    continue;
+                }
+            }
+            foreach ($v['validations'] as $validateMethod => $validateParameters) {
+                $options = isset($validateParameters['options']) ? 
+                    $validateParameters['options'] : array();
+                $result = $options ? 
+                    $validator->$validateMethod($this->$k, $options) :
+                    $validator->$validateMethod($this->$k);
+                if ($result !== true) {
+                    $this->setError(
+                        $k, 
+                        isset($validateParameters['errors'][$result]) ? 
+                        $validateParameters['errors'][$result] : $validateParameters['error_message']
+                    );
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * set error message
+     *
+     * @param string $field
+     * @param string $errorMessage
+     *
+     * @return void
+     */
+    protected function setError($field, $errorMessage) {
+        $this->_errors[$field] = $errorMessage;
+    }
+
+    /**
+     * get errors
+     *
+     * @return array
+     */
+    public function getErrors() {
+        return $this->_errors;
+    }
+
+    /**
+     * check if has error by the given $field name
+     *
+     * @param string $field
+     *
+     * @return bool
+     */
+    public function hasError($field) {
+        return isset($this->_errors[$field]);
+    }
+
+    /**
+     * get error message by the given $field name
+     *
+     * @param string $field
+     *
+     * @return mixed
+     */
+    public function getError($field) {
+        return isset($this->_errors[$field]) ? $this->_errors[$field] : null;
     }
 
     /**

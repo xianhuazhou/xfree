@@ -5,7 +5,7 @@ use xfree\Validator;
 
 class ValidatorTest extends TestCase {
     public function setUp() {
-        $this->validator = new Validator();
+        $this->validator = Validator::getInstance();
     }
 
     public function tearDown() {
@@ -42,6 +42,11 @@ class ValidatorTest extends TestCase {
         $this->assertTrue($this->validator->required('data'));
     }
 
+    public function testNotBlank() {
+        $this->assertFalse($this->validator->not_blank(''));
+        $this->assertTrue($this->validator->not_blank('data'));
+    }
+
     public function testBoolean() {
         $this->assertTrue($this->validator->boolean('1'));
         $this->assertTrue($this->validator->boolean('on'));
@@ -64,10 +69,10 @@ class ValidatorTest extends TestCase {
             'min_length' => 3,
             'max_length' => 6
         )));
-        $this->assertFalse($this->validator->string('user', array(
+        $this->assertEquals('min_length', $this->validator->string('user', array(
             'min_length' => 5
         )));
-        $this->assertFalse($this->validator->string('user', array(
+        $this->assertEquals('max_length', $this->validator->string('user', array(
             'max_length' => 3 
         )));
 
