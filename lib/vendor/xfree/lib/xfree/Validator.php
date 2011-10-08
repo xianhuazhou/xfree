@@ -111,16 +111,16 @@ class Validator {
             return false;
         }
 
+        if (isset($options['in_array']) && !in_array($data, $options['in_array'])) {
+            return 'in_array'; 
+        }
+
         $length = function_exists('mb_strlen') ? mb_strlen($data) : strlen($data);
         if ($this->lessThan($length, $options, 'min_length')) {
             return 'min_length';
         } 
         if ($this->greaterThan($length, $options, 'max_length')) {
             return 'max_length';
-        }
-
-        if (isset($options['in_array']) && !in_array($data, $options['in_array'])) {
-            return false;
         }
 
         return true;
@@ -143,15 +143,15 @@ class Validator {
             return false;
         }
 
+        if (isset($options['in_array']) && !in_array($number, $options['in_array'])) {
+            return 'in_array';
+        }
+
         if ($this->lessThan($number, $options, 'min')) {
             return 'min';
         }
         if ($this->greaterThan($number, $options, 'max')) {
             return 'max';
-        }
-
-        if (isset($options['in_array']) && !in_array($number, $options['in_array'])) {
-            return false;
         }
 
         return true;

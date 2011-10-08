@@ -20,13 +20,56 @@ class Book extends Model {
 
 // observer
 class Page extends Model {
-    protected $FIELDS = array('title', 'desc');
+    protected $FIELDS = array('id', 'title', 'desc');
     protected $PRIMARY_KEY = 'id';
 }
 class PageObserver extends Observer {
     public function beforeCreate($page) {
         $page->title = $page->title . ' Observer';
     }
+}
+
+// Validator
+class Post extends Model {
+    protected $FIELDS = array(
+        'id', 
+        'title' => array(
+            'validations' => array(
+                'string' => array(
+                    'options' => array(
+                        'min_length' => 5,
+                        'max_length' => 20
+                    ),
+                    'errors' => array(
+                        'min_length' => 'Title is too short',
+                        'max_length' => 'Title is too long'
+                    ),
+                ),
+            ),
+            'if' => 'not_blank',
+        ),
+        'content' => array(
+            'validations' => array(
+                'not_blank' => array(
+                    'error_message' => 'Content can not be blank'
+                ),
+            ),
+        ),
+        'publish' => array(
+            'validations' => array(
+                'integer' => array(
+                    'options' => array(
+                        'in_array' => array(1, 0)
+                    ),
+                    'errors' => array(
+                        'in_array' => 'publish should be 1 or 0'
+                    ),
+                    'error_message' => 'publish is invalid'
+                )
+            ),
+        ),
+    );
+    protected $PRIMARY_KEY = 'id';
 }
 
 class ModelTest extends TestCase {
@@ -38,6 +81,9 @@ class ModelTest extends TestCase {
 
         $page = new Page();
         $page->getConnection()->exec('CREATE TABLE page(id INTEGER PRIMARY KEY ASC, title TEXT, desc TEXT)');
+
+        $post = new Post();
+        $post->getConnection()->exec('CREATE TABLE post(id INTEGER PRIMARY KEY ASC, title TEXT, content TEXT, publish INTEGER');
     }
 
     public function tearDown() {
@@ -93,7 +139,32 @@ class ModelTest extends TestCase {
         $book->create();
         $items = iterator_to_array($book->getConnection()->books->find(), false);
         $this->assertEquals(1, count($items));
-        $this->assertEquals('Author Name', $items[0]['author']);
+        $this->assertEquals('Author Name', $items[0]['author']); 
+    }
+
+    public function testValidate() {
+        $post = new Post();
+        $post->title = 'new post';
+        $post->content = 'content ...';
+        $post->publish = 1;
+        $this->assertTrue($post->validate());
+
+        $post->publish = null;
+        $this->assertFalse($post->validate());
+        $this->assertTrue($post->hasError('publish'));
+        $this->assertEquals('publish is invalid', $post->getError('publish'));
+
+        $post->publish = 2;
+        $this->assertFalse($post->validate());
+        $this->assertTrue($post->hasError('publish'));
+        $this->assertEquals('publish should be 1 or 0', $post->getError('publish'));
+
+        $post->publish = 1;
+        $post->content = '';
+        $this->assertFalse($post->validate());
+        $this->assertTrue($post->hasError('content'));
+        $this->assertEquals('Content can not be blank', $post->getError('content'));
+
     }
 
     public function testUpdate() {
@@ -101,7 +172,6 @@ class ModelTest extends TestCase {
         $user = new User(array(
             'name' => 'User Name',
             'pass' => 'userPass',
-            'about' => 'About ...',
         ));
         $user->create();
         $this->assertEquals(1, $user->id);
@@ -136,7 +206,6 @@ class ModelTest extends TestCase {
         $user = new User(array(
             'name' => 'User Name',
             'pass' => 'userPass',
-            'about' => 'About ...',
         ));
         $user->create();
         $user->delete();

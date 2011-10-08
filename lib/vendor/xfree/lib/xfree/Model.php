@@ -75,7 +75,7 @@ class Model {
      */
     protected function setFields(Array $fields) {
         foreach ($fields as $k => $v) {
-            $this->setField($k, $v);
+            $this->$k = $v;
         }
     }
 
@@ -190,13 +190,16 @@ class Model {
      */
     public function create() {
         $this->hookObserver(self::HOOK_BEFORE_CREATE);
+        if (!$this->validate()) {
+            return null;
+        }
         $lastInsertId = $this->_storageEngine->create(
             $this->getTable(), 
             $this->_fields, 
             $this->PRIMARY_KEY
         );
         if ($this->PRIMARY_KEY) {
-            $this->_fields[$this->PRIMARY_KEY] = $lastInsertId;
+            $this->{$this->PRIMARY_KEY} = $this->_fields[$this->PRIMARY_KEY] = $lastInsertId;
         }
         $this->hookObserver(self::HOOK_AFTER_CREATE);
 
@@ -206,18 +209,16 @@ class Model {
     /**
      * validate data
      *
-     *
      * @return bool  true on success, false on failure
      */
     public function validate() {
-        $validator = \xfree::validator();
+        $validator = X::validator();
         foreach ($this->FIELDS as $k => $v) {
             if (!is_array($v)) {
                 continue;
             }
             if (isset($v['if'])) {
-                if (!$validator->{$v['if']}()) {
-                    $this->setError($k, $v['if_error_message']);
+                if (!$validator->{$v['if']}($this->$k)) {
                     continue;
                 }
             }
@@ -237,6 +238,17 @@ class Model {
                 }
             }
         }
+
+        return $this->hasErrors();
+    }
+
+    /**
+     * check if has errors
+     *
+     * @return bool
+     */
+    public function hasErrors() {
+        return count($this->_errors) == 0;
     }
 
     /**
@@ -291,6 +303,9 @@ class Model {
      */
     public function update($conditions = null) {
         $this->hookObserver(self::HOOK_BEFORE_UPDATE);
+        if (!$this->validate()) {
+            return null;
+        }
         $affectedRows = $this->_storageEngine->update(
             $this->getTable(), 
             $this->_fields, 
