@@ -226,6 +226,9 @@ class Model {
             foreach ($v['validations'] as $validateMethod => $validateParameters) {
                 $options = isset($validateParameters['options']) ? 
                     $validateParameters['options'] : array();
+                if (!method_exists($validator, $validateMethod)) {
+                    $validator = $this;
+                }
                 $result = $options ? 
                     $validator->$validateMethod($this->$k, $options) :
                     $validator->$validateMethod($this->$k);

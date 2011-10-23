@@ -79,7 +79,7 @@ class ValidatorTest extends TestCase {
         $this->assertTrue($this->validator->string('male', array(
             'in_array' => array('male', 'female')
         )));
-        $this->assertFalse($this->validator->string('males', array(
+        $this->assertEquals('in_array', $this->validator->string('males', array(
             'in_array' => array('male', 'female')
         )));
     }

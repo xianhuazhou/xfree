@@ -68,8 +68,22 @@ class Post extends Model {
                 )
             ),
         ),
+        'password' => array(
+            'validations' => array(
+                'not_blank' => array(
+                    'error_message' => 'Please type your password'
+                ),
+                'validate_password' => array(
+                    'error_message' => '2 passwords are not the same'
+                ) 
+            )
+        ),
     );
     protected $PRIMARY_KEY = 'id';
+
+    public function validate_password() {
+        return $this->password == param('password_confirmation');
+    }
 }
 
 class ModelTest extends TestCase {
@@ -143,10 +157,12 @@ class ModelTest extends TestCase {
     }
 
     public function testValidate() {
+        v('param.password_confirmation', 'pa$$word');
         $post = new Post();
         $post->title = 'new post';
         $post->content = 'content ...';
         $post->publish = 1;
+        $post->password = 'pa$$word';
         $this->assertTrue($post->validate());
 
         $post->publish = null;
@@ -179,6 +195,10 @@ class ModelTest extends TestCase {
 
         $post->title = '';
         $this->assertTrue($post->validate());
+
+        v('param.password_confirmation', 'wrong password');
+        $this->assertFalse($post->validate());
+        $this->assertEquals('2 passwords are not the same', $post->getError('password'));
     }
 
     public function testUpdate() {
